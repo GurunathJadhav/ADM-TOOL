@@ -1,0 +1,16 @@
+---
+type: requirement
+id: REQ-ghrr-req188
+project_id: af-prj-scale001
+schema_version: 1.0.0
+created: 20261101T003116Z
+actor: agent
+role: agent
+title: "scale requirement 188"
+priority: must
+status: delivered
+---
+
+# REQ-ghrr-req188
+
+Synthetic scale-test record.

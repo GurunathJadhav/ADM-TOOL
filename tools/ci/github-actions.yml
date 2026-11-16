@@ -1,0 +1,124 @@
+name: Agentflow CI & Verification Gate
+
+on:
+  pull_request:
+    branches: [ main, master, 'release/**' ]
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  agentflow-gate:
+    name: Agentflow Tier-2 Compliance Gate
+    runs-on: ubuntu-latest
+
+    env:
+      # Configure your project's test command here (or leave empty to skip test run)
+      PROJECT_TEST_CMD: "pytest"
+      # Agentflow project directory
+      AF_DIR: ".agentflow"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+        continue-on-error: true
+
+      - name: 1. Run Agentflow Tier-1 Validator
+        id: validator
+        run: |
+          echo "::group::Running Agentflow Validator"
+          python tools/validate.py . --check=all
+          echo "::endgroup::"
+
+      - name: 2. Protected Paths & Manifest Verification
+        id: protected_paths
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "::group::Verifying Protected Paths and Manifest Compliance"
+          BASE_REF="origin/${{ github.base_ref }}"
+          CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD)
+
+          echo "Files changed in this PR:"
+          echo "$CHANGED_FILES"
+
+          # Check if any protected paths were touched
+          PROTECTED_PATTERNS=".env* secrets/* private/* *.pem *.key package.json package-lock.json yarn.lock pnpm-lock.yaml Gemfile.lock pyproject.toml Cargo.lock go.mod Dockerfile *.dockerfile docker-compose*.yml .github/* deploy/* infra/* terraform/* *.tf migrations/* LICENSE* .agentflow/project.md .agentflow/gates.md .agentflow/lanes.md .agentflow/safety.md .agentflow/protected.md AGENTS.md CLAUDE.md"
+
+          APPROVALS_TEXT=""
+          if [ -d "$AF_DIR/approvals" ]; then
+            APPROVALS_TEXT=$(cat "$AF_DIR/approvals"/*.md 2>/dev/null || true)
+          fi
+
+          VIOLATIONS=0
+          for file in $CHANGED_FILES; do
+            IS_PROT=0
+            for pat in $PROTECTED_PATTERNS; do
+              case "$file" in
+                $pat) IS_PROT=1; break ;;
+              esac
+            done
+
+            if [ "$IS_PROT" -eq 1 ]; then
+              BASENAME=$(basename "$file")
+              if ! echo "$APPROVALS_TEXT" | grep -q "$file" && ! echo "$APPROVALS_TEXT" | grep -q "$BASENAME"; then
+                echo "::error file=$file::Protected path modified without approval record: $file (§S5.6)"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              else
+                echo "Protected path $file has corresponding approval record."
+              fi
+            fi
+          done
+
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "ERROR: Found $VIOLATIONS protected path modifications lacking human approval records."
+            exit 1
+          fi
+          echo "All protected path modifications verified against approval records."
+          echo "::endgroup::"
+
+      - name: 3. Run Project Test Suite
+        id: tests
+        run: |
+          echo "::group::Executing Project Tests"
+          if command -v $PROJECT_TEST_CMD >/dev/null 2>&1; then
+            echo "Running: $PROJECT_TEST_CMD"
+            eval "$PROJECT_TEST_CMD"
+          elif [ -f "package.json" ] && grep -q '"test"' package.json; then
+            echo "Running: npm test"
+            npm test
+          elif [ -f "pytest.ini" ] || [ -f "tests" ] || [ -f "test" ]; then
+            echo "Running: pytest"
+            python -m pytest || true
+          else
+            echo "No test suite configured or detected. Set PROJECT_TEST_CMD in workflow env."
+          fi
+          echo "::endgroup::"
+
+      - name: 4. Generate GitHub Step Summary
+        if: always()
+        run: |
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          ## 🛡️ Agentflow Verification Gate Summary
+
+          | Check | Status | Description |
+          | :--- | :--- | :--- |
+          | **Schema & Frontmatter** | ${{ steps.validator.outcome == 'success' && '✅ Passed' || '❌ Failed' }} | Front-matter presence, required fields, and enum tokens |
+          | **Secrets Scan** | ${{ steps.validator.outcome == 'success' && '✅ Clean' || '❌ Flagged' }} | Scanned records for tokens, keys, and credentials |
+          | **Edit Lock & Manifest** | ${{ steps.validator.outcome == 'success' && '✅ Valid' || '❌ Violation' }} | Verified active manifests and overlap prevention |
+          | **Protected Paths** | ${{ steps.protected_paths.outcome == 'success' && '✅ Verified' || (steps.protected_paths.outcome == 'skipped' && '⏭️ Skipped' || '❌ Unapproved') }} | Audited protected configuration and policy changes |
+          | **Test Suite** | ${{ steps.tests.outcome == 'success' && '✅ Passed' || '⚠️ Check Logs' }} | Executed project regression and verification test suite |
+
+          > _Enforced by Agentflow Tier-2 CI Gate (§S14). Only peer-reviewed, manifest-compliant changes may merge._
+          EOF

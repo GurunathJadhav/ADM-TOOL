@@ -1,0 +1,19 @@
+---
+type: event
+id: EVT-hjkn-scale
+project_id: af-prj-scale001
+schema_version: 1.0.0
+created: 20261101T002923Z
+actor: agent
+role: agent
+event_type: "ticket-in-progress"
+ticket_id: "T-ghqq-scale177"
+target_id: "T-ghqq-scale177"
+summary: "ticket 177 in progress"
+evidence_refs: []
+supersedes: ""
+---
+
+# EVT-hjkn-scale
+
+Synthetic scale-test record.

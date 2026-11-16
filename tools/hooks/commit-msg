@@ -1,0 +1,73 @@
+#!/bin/sh
+# Agentflow Git commit-msg hook (§S14 Tier-2 Enforcement)
+#
+# Validates that commit messages follow the Agentflow standard:
+# - Ticket commits:   [T-xxxx-slug] <imperative summary> (or [T-xxxx])
+# - Framework changes: [af-xxx] <summary> (e.g. [af-init], [af-rebuild], [af-rule-change])
+# - Merge commits:    Merge ...
+#
+# Exit 0 allows the commit message, exit 1 rejects it.
+
+set -e
+
+MSG_FILE="$1"
+if [ -z "$MSG_FILE" ] || [ ! -f "$MSG_FILE" ]; then
+  echo "ERROR: [agentflow:commit-msg] Commit message file not found."
+  exit 1
+fi
+
+# Extract the first non-comment, non-empty line (subject line)
+FIRST_LINE=$(grep -v -E '^[[:space:]]*#' "$MSG_FILE" | grep -v -E '^[[:space:]]*$' | head -n 1)
+
+if [ -z "$FIRST_LINE" ]; then
+  echo "ERROR: [agentflow:commit-msg] Commit message is empty!"
+  exit 1
+fi
+
+# Allow merge commits
+case "$FIRST_LINE" in
+  Merge\ *|"Merge branch"*|"Merge pull request"*)
+    exit 0
+    ;;
+esac
+
+# Check for [T-xxxx-slug] or [T-xxxx]
+# Format: [T-<4 base32 chars>(-<slug>)?]
+IS_TICKET=0
+if echo "$FIRST_LINE" | grep -q -E '^\[T-[0-9a-km-np-tv-z]{4}(-[a-z0-9-]+)?\]'; then
+  IS_TICKET=1
+elif echo "$FIRST_LINE" | grep -q -E '^\[T-[0-9a-zA-Z]{4}(-[a-z0-9-]+)?\]'; then
+  IS_TICKET=1
+fi
+
+# Check for [af-xxx] framework prefix
+IS_FRAMEWORK=0
+if echo "$FIRST_LINE" | grep -q -E '^\[af-[a-z0-9-]+\]'; then
+  IS_FRAMEWORK=1
+fi
+
+if [ "$IS_TICKET" -eq 1 ] || [ "$IS_FRAMEWORK" -eq 1 ]; then
+  exit 0
+fi
+
+# Reject with clear helpful guidance
+echo ""
+echo "================================================================================"
+echo "ERROR: [agentflow:commit-msg] Invalid commit message format! (§S16)"
+echo "================================================================================"
+echo ""
+echo "Agentflow requires every commit subject to identify its associated ticket"
+echo "or framework operation."
+echo ""
+echo "Allowed formats:"
+echo "  1. Ticket commits:    [T-xxxx-slug] <summary>"
+echo "     Example:           [T-x4kq-auth-login] implement bcrypt password validation"
+echo "  2. Framework commits: [af-xxx] <summary>"
+echo "     Example:           [af-init] initialize agentflow project discovery"
+echo "     Example:           [af-rebuild] update derived state and cheatsheet"
+echo "     Example:           [af-rule-change] add protected paths policy"
+echo ""
+echo "Your commit message was:"
+echo "  \"$FIRST_LINE\""
+echo "================================================================================"
+exit 1

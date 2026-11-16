@@ -1,0 +1,190 @@
+#!/bin/sh
+# Agentflow Git pre-commit hook (§S14 Tier-2 Enforcement)
+#
+# Validates staged changes before allowing a commit:
+# 1. Scans staged diffs for accidental secret leakage
+# 2. Enforces Edit Lock: rejects code changes staged off the approved manifest
+# 3. Validates protected paths have explicit human approval records
+# 4. Ensures done tickets have passing verification records
+# 5. Runs the Agentflow validator in frontmatter + secrets mode
+#
+# Exit 0 allows commit, exit 1 blocks commit with diagnostic message.
+
+set -e
+
+# Find repository root
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+AF_DIR="$GIT_ROOT/.agentflow"
+
+if [ ! -d "$AF_DIR" ]; then
+  # Not an Agentflow repository, allow commit
+  exit 0
+fi
+
+echo "[agentflow:pre-commit] Checking staged changes..."
+
+# 1. Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -z "$STAGED_FILES" ]; then
+  # No files staged, nothing to check
+  exit 0
+fi
+
+# 2. Secrets scan on staged diff additions
+STAGED_DIFF=$(git diff --cached -U0)
+
+# Check for API keys, AWS tokens, private keys, database URLs
+if echo "$STAGED_DIFF" | grep -E '^\+[^\+].*(sk-[a-zA-Z0-9]{20,}|ghp_[A-Za-z0-9]{30,}|gho_[A-Za-z0-9]{30,}|xox[baprs]-[A-Za-z0-9-]{20,}|glpat-[A-Za-z0-9-]{20,})' >/dev/null 2>&1; then
+  echo ""
+  echo "ERROR: [agentflow:pre-commit] Secret token pattern detected in staged changes!"
+  echo "  Per §S8 and the secrets-and-redaction skill, secrets must NEVER be committed."
+  echo "  Rotate the exposed credential immediately, unstage, and redact before committing."
+  exit 1
+fi
+
+if echo "$STAGED_DIFF" | grep -E '^\+[^\+].*(AKIA[0-9A-Z]{16}|aws_secret_access_key)' >/dev/null 2>&1; then
+  echo ""
+  echo "ERROR: [agentflow:pre-commit] AWS credential detected in staged changes!"
+  echo "  Rotate the key immediately, unstage, and redact before committing."
+  exit 1
+fi
+
+if echo "$STAGED_DIFF" | grep -E '^\+[^\+].*-----BEGIN [A-Z ]*PRIVATE KEY-----' >/dev/null 2>&1; then
+  echo ""
+  echo "ERROR: [agentflow:pre-commit] Private key block detected in staged changes!"
+  exit 1
+fi
+
+if echo "$STAGED_DIFF" | grep -E -i '^\+[^\+].*(postgres|postgresql|mysql|mongodb|redis)://[^:]+:[^@]+@' >/dev/null 2>&1; then
+  echo ""
+  echo "ERROR: [agentflow:pre-commit] Database connection string with password detected in staged changes!"
+  exit 1
+fi
+
+# 3. Check Edit Lock & Active Manifest compliance
+STATE_FILE="$AF_DIR/STATE.md"
+ACTIVE_MANIFEST=""
+EDIT_LOCK="locked"
+
+if [ -f "$STATE_FILE" ]; then
+  ACTIVE_MANIFEST=$(grep -E '^[[:space:]]*active_manifest:' "$STATE_FILE" | head -n1 | sed -E 's/^[[:space:]]*active_manifest:[[:space:]]*//; s/["'\'']//g')
+  EDIT_LOCK=$(grep -E '^[[:space:]]*edit_lock:' "$STATE_FILE" | head -n1 | sed -E 's/^[[:space:]]*edit_lock:[[:space:]]*//; s/["'\'']//g')
+fi
+
+# Filter staged files: separate framework metadata (.agentflow/) from project source files
+CODE_STAGED=""
+for f in $STAGED_FILES; do
+  case "$f" in
+    .agentflow/*) ;;
+    *) CODE_STAGED="$CODE_STAGED $f" ;;
+  esac
+done
+
+if [ -n "$CODE_STAGED" ]; then
+  if [ "$ACTIVE_MANIFEST" = "none" ] || [ -z "$ACTIVE_MANIFEST" ]; then
+    echo ""
+    echo "ERROR: [agentflow:pre-commit] Edit lock is ON and no active manifest is approved in STATE.md (§S5.1)!"
+    echo "  Staged source files without active manifest:"
+    for f in $CODE_STAGED; do
+      echo "    - $f"
+    done
+    echo "  Run /af-edit-plan and get manifest approval before editing source files."
+    exit 1
+  fi
+
+  MANIFEST_PATH="$AF_DIR/${ACTIVE_MANIFEST#.agentflow/}"
+  if [ ! -f "$MANIFEST_PATH" ]; then
+    echo ""
+    echo "ERROR: [agentflow:pre-commit] Active manifest file not found: $ACTIVE_MANIFEST"
+    exit 1
+  fi
+
+  # Extract allowed paths from manifest
+  ALLOWED_PATTERNS=$(sed -n '/allowed_to_modify:/,/^[a-zA-Z0-9_-]*:/p' "$MANIFEST_PATH" | grep -E '^[[:space:]]*- ' | sed 's/^[[:space:]]*- //' | tr -d '"' | tr -d "'")
+  ALLOWED_PATTERNS="$ALLOWED_PATTERNS $(sed -n '/allowed_to_create:/,/^[a-zA-Z0-9_-]*:/p' "$MANIFEST_PATH" | grep -E '^[[:space:]]*- ' | sed 's/^[[:space:]]*- //' | tr -d '"' | tr -d "'")"
+
+  for f in $CODE_STAGED; do
+    MATCHED=0
+    for pat in $ALLOWED_PATTERNS; do
+      case "$f" in
+        $pat) MATCHED=1; break ;;
+      esac
+    done
+    if [ "$MATCHED" -eq 0 ]; then
+      echo ""
+      echo "ERROR: [agentflow:pre-commit] Staged file is OFF-MANIFEST: $f (§S5.2)!"
+      echo "  Current manifest ($ACTIVE_MANIFEST) does not permit editing this file."
+      echo "  Run /af-expand-scope to request scope expansion with user approval."
+      exit 1
+    fi
+  done
+fi
+
+# 4. Check protected paths
+PROTECTED_FILE="$AF_DIR/protected.md"
+if [ -f "$PROTECTED_FILE" ]; then
+  APPROVALS_TEXT=""
+  if [ -d "$AF_DIR/approvals" ]; then
+    APPROVALS_TEXT=$(cat "$AF_DIR/approvals"/*.md 2>/dev/null || true)
+  fi
+
+  # Common protected patterns
+  for f in $STAGED_FILES; do
+    IS_PROTECTED=0
+    case "$f" in
+      .env*|secrets/*|private/*|*.pem|*.key|package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|Gemfile.lock|requirements.txt|Cargo.lock|go.mod|Dockerfile|*.dockerfile|docker-compose*.yml|.github/*|deploy/*|infra/*|terraform/*|*.tf|migrations/*|LICENSE*|jest.config.*|pytest.ini)
+        IS_PROTECTED=1
+        ;;
+      .agentflow/project.md|.agentflow/gates.md|.agentflow/lanes.md|.agentflow/safety.md|.agentflow/protected.md|.agentflow/workflow-map.md|AGENTS.md|CLAUDE.md)
+        IS_PROTECTED=1
+        ;;
+    esac
+
+    if [ "$IS_PROTECTED" -eq 1 ]; then
+      BASENAME=$(basename "$f")
+      if ! echo "$APPROVALS_TEXT" | grep -q "$f" && ! echo "$APPROVALS_TEXT" | grep -q "$BASENAME"; then
+        echo ""
+        echo "ERROR: [agentflow:pre-commit] Protected path staged without approval record: $f (§S5.6)!"
+        echo "  Protected paths require explicit human sign-off in approvals/A-xxxx.md."
+        exit 1
+      fi
+    fi
+  done
+fi
+
+# 5. Check missing verifications on done tickets
+EVENTS_DIR="$AF_DIR/events"
+VERIFS_DIR="$AF_DIR/verifications"
+for f in $STAGED_FILES; do
+  case "$f" in
+    .agentflow/events/*ticket-done*.md|.agentflow/events/*status-change*done*.md)
+      TID=$(grep -E '^[[:space:]]*ticket_id:' "$GIT_ROOT/$f" | head -n1 | sed -E 's/^[[:space:]]*ticket_id:[[:space:]]*//; s/["'\'']//g')
+      if [ -n "$TID" ] && [ "$TID" != "none" ]; then
+        PASSING=$(grep -l -E '^[[:space:]]*result:[[:space:]]*pass' "$VERIFS_DIR"/*.md 2>/dev/null | xargs grep -l -E "^[[:space:]]*ticket_id:[[:space:]]*$TID" 2>/dev/null || true)
+        if [ -z "$PASSING" ]; then
+          echo ""
+          echo "ERROR: [agentflow:pre-commit] Ticket $TID is being marked done without a passing verification record (§S6)!"
+          echo "  Run /af-verify to execute verification and record evidence first."
+          exit 1
+        fi
+      fi
+      ;;
+  esac
+done
+
+# 6. Run framework validator if available
+VALIDATOR_PY="$GIT_ROOT/tools/validate.py"
+VALIDATOR_MJS="$GIT_ROOT/tools/validate.mjs"
+
+if command -v python3 >/dev/null 2>&1 && [ -f "$VALIDATOR_PY" ]; then
+  python3 "$VALIDATOR_PY" "$AF_DIR" --check=frontmatter,secrets --staged
+elif command -v python >/dev/null 2>&1 && [ -f "$VALIDATOR_PY" ]; then
+  python "$VALIDATOR_PY" "$AF_DIR" --check=frontmatter,secrets --staged
+elif command -v node >/dev/null 2>&1 && [ -f "$VALIDATOR_MJS" ]; then
+  node "$VALIDATOR_MJS" "$AF_DIR" --check=frontmatter,secrets --staged
+elif [ -f "$GIT_ROOT/tools/validate.sh" ]; then
+  sh "$GIT_ROOT/tools/validate.sh" "$AF_DIR" frontmatter
+fi
+
+echo "[agentflow:pre-commit] All pre-commit checks passed."
+exit 0

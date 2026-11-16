@@ -1,0 +1,78 @@
+---
+name: af-verify
+description: Execute verification command for an unverified edit step, record evidence, and clear unverified state
+phase: implementation, verification, any
+tier: 0
+actor: both
+core: true
+---
+
+# /af-verify — Verify Step
+
+## Purpose
+Validates the current provisional code change against acceptance criteria and quality rules during the TDD micro-cycle. Executes relevant automated tests, static checks, or command verifications, captures raw output into an evidence record, generates a formal verification record (`verifications/V-<id>.md`), and clears the unverified step lock. Never permits stacking edits on top of an unverified change.
+
+## Preconditions
+- [ ] Active ticket claimed (`active_ticket` set in `STATE.md`).
+- [ ] Active Edit Manifest approved (`active_manifest` set in `STATE.md`).
+- [ ] A provisional edit has been made within the unverified limit (max 1 file or ~50 lines).
+- [ ] Verification command or check method is identified from ticket criteria.
+
+## Steps
+1. **Preflight Step Inspection:**
+   - Confirm modified files are strictly listed on the approved Edit Manifest.
+   - Confirm only one provisional step was taken (no stacked unverified edits).
+2. **Execute Verification Command:**
+   - Run the specific test, lint, typecheck, or command associated with the criterion being addressed:
+     - Tier 1/2: Run command directly in environment.
+     - Tier 0: Present exact command to user and request pasted terminal output.
+   - Verify that test is not skipped, assertion is not weakened, and expected output is genuine.
+3. **Capture Evidence:**
+   - Capture terminal/command output, trimming to the relevant ~200 lines.
+   - Write evidence to `.agentflow/evidence/<ticket-id>/<step-slug>.md` with timestamp and command run.
+4. **Evaluate Verification Outcome:**
+   - **PASS:**
+     - Generate verification record: `.agentflow/verifications/V-<4 base32 chars>-<slug>.md` containing:
+       - `type: verification`
+       - `id: V-<id>`
+       - `project_id: <project_id>`
+       - `schema_version: 1.0.0`
+       - `created: <UTC-compact>`
+       - `actor: agent`
+       - `role: implementer`
+       - `ticket_id: <ticket-id>`
+       - `criterion_id: <criterion>`
+       - `method: <automated-test|command-output|static-check|etc>`
+       - `result: pass`
+       - `evidence_path: evidence/<ticket-id>/<step-slug>.md`
+     - Log event:
+       `events/<UTC-compact>-T-<ticket-id>-step-verified-V-<id>.md`
+     - Clear `unverified_step: none` in `STATE.md`.
+   - **FAIL:**
+     - Increment failure counter for this step.
+     - If failures < 3: Diagnose failure, apply minimal in-step fix, and re-run `/af-verify`.
+     - If failures >= 3: STOP immediately. Do NOT stack further speculative edits. Run `/af-revert-unverified` or `/af-stuck`.
+5. **Rebuild STATE.md:**
+   - Update `STATE.md` with verified status, recent event, and next action.
+
+## Postconditions
+- [ ] Evidence recorded in `.agentflow/evidence/<ticket-id>/`.
+- [ ] `.agentflow/verifications/V-<id>.md` created with `result: pass`.
+- [ ] Event `step-verified` recorded in `events/`.
+- [ ] `unverified_step` cleared in `STATE.md`.
+
+## Next
+- **Success (steps remain in manifest):** Proceed with next micro-edit, then `/af-verify`.
+- **Success (all criteria/manifest steps complete):** `/af-diff-check` — Run pre-done diff gate.
+- **Failure (< 3 attempts):** Fix error within current step and re-run `/af-verify`.
+- **Failure (>= 3 attempts):** `/af-revert-unverified` — Revert back to step baseline, or `/af-stuck`.
+- **Blocked:** Ask user for pasted command output if execution cannot run in current tier.
+
+## Common Mistakes
+- Stacking a second edit before verifying the first edit.
+- Deleting, commenting out, or loosening a test assertion to force verification to pass.
+- Claiming verification passed without generating an evidence record containing actual output.
+- Modifying files not listed on the approved manifest during verification fixes.
+
+## Footer Template
+`Done: verified criterion <criterion_id> with V-<id> | Logged: <event-id> | Next: <next-edit-or-/af-diff-check> | Needs you: nothing`
