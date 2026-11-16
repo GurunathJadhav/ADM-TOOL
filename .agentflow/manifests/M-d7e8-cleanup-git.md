@@ -9,6 +9,24 @@ role: agent
 ticket_id: T-c5d6-cleanup-git
 status: approved
 approved_by: owner (explicit request in chat, 2026-11-17)
+allowed_to_modify:
+  - "%TEMP%/af-install-test*"
+  - evals/_gen_golden.py
+  - evals/scale/
+  - evals/state-fixtures/
+  - evals/scenarios/bad-behaviour/
+  - evals/scenarios/wrong-command/
+  - tools/validate.mjs
+  - tools/validate.ps1
+  - tools/validate.sh
+  - tools/__pycache__/
+  - evals/RUN-EVALS.md
+  - .gitignore
+  - .git
+  - .agentflow/events/
+  - .agentflow/verifications/
+  - .agentflow/STATE.md
+edit_budget: deletions and record edits only; no framework source (src/, docs/, tools/ logic, golden fixture) modified
 ---
 # Edit Manifest — cleanup + git init
 
