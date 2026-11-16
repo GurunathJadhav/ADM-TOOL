@@ -9,6 +9,7 @@ role: agent
 ticket_id: T-c5d6-cleanup-git
 status: approved
 approved_by: owner (explicit request in chat, 2026-11-17)
+approval_ref: A-d4e5-cleanup-manifest
 allowed_to_modify:
   - "%TEMP%/af-install-test*"
   - evals/_gen_golden.py
