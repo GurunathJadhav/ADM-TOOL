@@ -18,7 +18,7 @@ active_manifest: none
 unverified_step: none
 guidance: expert
 strictness: strict
-built_from: 20261117T190100Z-T-b2c3-agtsy-skills-done-E-j4k5-agtsy-done
+built_from: 20261117T191101Z-T-b2c3-agtsy-skills-lesson-created-E-n5p6-gate-lesson
 
 ## Ticket Board
 <!-- Max 10 lines. Show only: in-progress, in-review, blocked, next-ready. All others as counts. -->

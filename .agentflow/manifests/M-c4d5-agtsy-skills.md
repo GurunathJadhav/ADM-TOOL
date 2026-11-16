@@ -8,7 +8,8 @@ actor: agent
 role: agent
 ticket_id: T-b2c3-agtsy-skills
 status: approved
-approved_by: owner (reported /af-* commands not visible in Antigravity CLI screenshot, 2026-11-17; fix pre-offered and requested)
+approved_by: owner (explicit go-ahead in chat, 2026-11-17)
+approval_ref: A-k5m6-agtsy-manifest
 allowed_to_modify:
   - tools/install.py
   - docs/adapter-guide.md
