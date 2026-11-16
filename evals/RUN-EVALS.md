@@ -70,6 +70,3 @@ undermine the human approvals the framework relies on.
   warning: `Q-8x3k-storage-format` carries `blocking: true` (answered, but the
   validator cannot derive question status from events). Treat the warning as
   expected when grading fixture-based runs.
-- Prior fixture generations are kept for reference: `evals/golden-project-previous/`
-  and the `scenarios/bad-behaviour`, `scenarios/wrong-command`,
-  `scenarios/state-fixtures` sets from earlier runs.

@@ -1,3 +1,4 @@
 # Agentflow (recommended .gitignore additions — review before adopting)
 .agentflow/private/
 .agentflow/evidence/*.log
+__pycache__/
