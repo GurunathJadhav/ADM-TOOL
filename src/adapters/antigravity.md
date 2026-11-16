@@ -15,6 +15,8 @@ This project is governed by Agentflow. Follow the core instructions in `AGENTS.m
    - **Self-Protection:** Never modify protected policy files (`.agentflow/project.md`, `gates.md`, `lanes.md`, `safety.md`, `protected.md`, adapters) without an approved `rule-change`.
 
 ## Antigravity Workflows & Delegation
+- **Native slash commands:** the installer copies every `/af-*` command and framework skill into `.agents/skills/` as `SKILL.md` files; Antigravity converts these into native slash commands (CLI: auto; after adding while running, `/skills reload` or restart the conversation). In the App/IDE message box type `/<skill-name>`.
+- **Fallback:** if a command is not registered, say: "Run the Agentflow command /af-<name>: read .agentflow/commands/af-<name>.md and follow it."
 - **Commands & Workflows:** Agentflow commands (`/af-start`, `/af-next`, `/af-ticket`, etc.) can be executed as prompt commands or orchestrated via Antigravity workflow scripts.
 - **Skills:** Agentflow skills in `.agentflow/skills/` follow the standard skill specification (`SKILL.md`) and should be loaded on demand.
 - **Subagents & Swarms:** When delegating tasks to subagents or swarm workers:

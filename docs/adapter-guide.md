@@ -41,8 +41,9 @@ Agentflow works through thin per-agent adapter files. Each exposes the same core
 
 ## Antigravity
 
-*Verified against official docs 2026-11-17 (antigravity.google/docs/rules).*
+*Verified against official docs 2026-11-17 (antigravity.google/docs/rules, /docs/skills).*
 - **Files:** Antigravity loads `AGENTS.md` (or `GEMINI.md`) from the workspace folder and parent folders up to the repository root — always-on, no frontmatter needed, so the canonical managed block is enough. Optional modular rules go in `.agents/rules/*.md` with a required `trigger:` front matter key (`always_on | model_decision | glob | manual`); a skills-style router rule can be exposed as `trigger: model_decision`. Rules are capped at 24 KB per file.
+- **Native slash commands (CLI + App + IDE):** Antigravity reads skills from `<workspace>\.agents\skills\<name>\SKILL.md` (plus global `~/.gemini/config/skills/`). The installer copies every `/af-*` command file there as `.agents/skills/af-<name>/SKILL.md` (and mirrors the 34 framework skills), where the CLI auto-converts each into a native slash command and the App/IDE accept `/<skill-name>` in the message box. After adding skills while the CLI is running, run `/skills reload` or start a new conversation. Existing `.agents/skills/` files are never overwritten.
 - **Recommended permissions:** same baseline — shell outside allowlist confirmed, writes outside manifest confirmed where supported, auto-approve-everything **OFF**.
 
 ## Codex / Windsurf (Devin Desktop) / Cline / Copilot agent mode

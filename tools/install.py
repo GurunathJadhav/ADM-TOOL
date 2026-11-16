@@ -196,6 +196,9 @@ def install(source_root, target, dry_run):
     upsert_managed_block(os.path.join(target, "CLAUDE.md"), dry_run, created, updated, conflicts,
                          block_factory=claude_managed_block)
 
+    # 4b. native Antigravity skills (.agents/skills/ — slash-command surface, S13)
+    mirror_antigravity_skills(src, target, dry_run, created, updated, skipped)
+
     # 5. recommended .gitignore additions (separate file; never touches an existing .gitignore)
     if not os.path.exists(os.path.join(target, ".gitignore")):
         atomic_write(os.path.join(target, ".gitignore"), GITIGNORE, dry_run, created, updated)
@@ -212,6 +215,38 @@ def install(source_root, target, dry_run):
         print("CONFLICTS NEED THE USER — resolve manually, do not delete existing rules.")
         return 2
     return 0
+
+
+def mirror_antigravity_skills(src, target, dry_run, created, updated, skipped):
+    """Expose commands and skills as native Antigravity skills (S13, verified 2026-11-17:
+    Antigravity reads .agents/skills/<name>/SKILL.md and auto-converts each into a
+    /<name> slash command in the CLI TUI and the App/IDE message box). Non-destructive:
+    existing skills are never overwritten — project overrides win."""
+    ag_skills = os.path.join(target, ".agents", "skills")
+    cmd_dir = os.path.join(src, "commands")
+    if os.path.isdir(cmd_dir):
+        for f in sorted(os.listdir(cmd_dir)):
+            if not (f.startswith("af-") and f.endswith(".md")):
+                continue
+            s = os.path.join(cmd_dir, f)
+            d = os.path.join(ag_skills, f[:-3], "SKILL.md")
+            if not os.path.exists(d):
+                with open(s, "r", encoding="utf-8-sig") as fh:
+                    atomic_write(d, fh.read(), dry_run, created, updated)
+            else:
+                skipped.append("existing antigravity skill kept: .agents/skills/%s" % f[:-3])
+    skl_dir = os.path.join(src, "skills")
+    if os.path.isdir(skl_dir):
+        for name in sorted(os.listdir(skl_dir)):
+            s = os.path.join(skl_dir, name, "SKILL.md")
+            if not os.path.isfile(s):
+                continue
+            d = os.path.join(ag_skills, name, "SKILL.md")
+            if not os.path.exists(d):
+                with open(s, "r", encoding="utf-8-sig") as fh:
+                    atomic_write(d, fh.read(), dry_run, created, updated)
+            else:
+                skipped.append("existing antigravity skill kept: .agents/skills/%s" % name)
 
 
 def uninstall(target, dry_run):
