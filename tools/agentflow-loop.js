@@ -114,13 +114,13 @@ function run(target) {
 
   if (!fs.existsSync(afDir)) {
     console.error(`Error: .agentflow/ not found in ${target}. Run 'agentflow install <project>' first.`);
-    return 1;
+    return Promise.resolve(1);
   }
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const ask = (q) => new Promise((resolve) => rl.question(q, resolve));
 
-  (async () => {
+  return (async () => {
     let round = 0;
     while (true) {
       const open = findOpenBlockingQuestions(qDir);
@@ -145,12 +145,10 @@ function run(target) {
     console.log("=== Agentflow question loop complete ===");
     console.log("No open blocking questions remain. The no-coding gate is satisfied.");
     return 0;
-  })().then((code) => {
-    process.exit(code);
-  }).catch((err) => {
+  })().catch((err) => {
     console.error("Loop error:", err.message);
     rl.close();
-    process.exit(1);
+    return 1;
   });
 }
 
@@ -162,5 +160,5 @@ if (require.main === module) {
     console.error("Usage: node tools/agentflow-loop.js <project>");
     process.exit(2);
   }
-  run(target);
+  run(target).then((code) => process.exit(code));
 }

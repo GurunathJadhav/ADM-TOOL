@@ -113,39 +113,39 @@ function main() {
         console.error("Usage: agentflow init <project>");
         process.exit(2);
       }
-      console.log("=== Agentflow init: step 1/3 — install ===");
-      const afDir = path.join(target, ".agentflow");
-      let installSkipped = false;
-      if (!fs.existsSync(afDir)) {
-        const installCode = runPython(path.join(ROOT, "tools", "install.py"), [target]);
-        if (installCode !== 0) {
-          console.error("=== Agentflow init FAILED at install ===");
-          process.exit(installCode);
+      (async () => {
+        console.log("=== Agentflow init: step 1/3 — install ===");
+        const afDir = path.join(target, ".agentflow");
+        if (!fs.existsSync(afDir)) {
+          const installCode = runPython(path.join(ROOT, "tools", "install.py"), [target]);
+          if (installCode !== 0) {
+            console.error("=== Agentflow init FAILED at install ===");
+            process.exit(installCode);
+          }
+        } else {
+          console.log(".agentflow/ already exists — skipping install.");
         }
-      } else {
-        console.log(".agentflow/ already exists — skipping install.");
-        installSkipped = true;
-      }
 
-      console.log("\n=== Agentflow init: step 2/3 — question loop ===");
-      const loopCode = require(path.join(ROOT, "tools", "agentflow-loop.js")).run(target);
-      if (loopCode !== 0) {
-        console.error("=== Agentflow init FAILED at question loop ===");
-        process.exit(loopCode);
-      }
+        console.log("\n=== Agentflow init: step 2/3 — question loop ===");
+        const loopCode = await require(path.join(ROOT, "tools", "agentflow-loop.js")).run(target);
+        if (loopCode !== 0) {
+          console.error("=== Agentflow init FAILED at question loop ===");
+          process.exit(loopCode);
+        }
 
-      console.log("\n=== Agentflow init: step 3/3 — pre-edit gate ===");
-      const gateCode = require(path.join(ROOT, "tools", "agentflow-gate.js")).run(target, skip);
-      if (gateCode !== 0) {
-        console.error("=== Agentflow init FAILED at pre-edit gate ===");
-        console.error("Run 'agentflow loop <project>' then 'agentflow doctor <project>' to resolve.");
-        process.exit(gateCode);
-      }
+        console.log("\n=== Agentflow init: step 3/3 — pre-edit gate ===");
+        const gateCode = require(path.join(ROOT, "tools", "agentflow-gate.js")).run(target, skip);
+        if (gateCode !== 0) {
+          console.error("=== Agentflow init FAILED at pre-edit gate ===");
+          console.error("Run 'agentflow loop <project>' then 'agentflow doctor <project>' to resolve.");
+          process.exit(gateCode);
+        }
 
-      console.log("\n=== Agentflow init COMPLETE ===");
-      console.log("Framework installed, all blocking questions answered, gate is clear.");
-      console.log("Your agent can now start coding.");
-      process.exit(0);
+        console.log("\n=== Agentflow init COMPLETE ===");
+        console.log("Framework installed, all blocking questions answered, gate is clear.");
+        console.log("Your agent can now start coding.");
+        process.exit(0);
+      })();
       break;
 
     default:
