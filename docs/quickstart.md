@@ -4,8 +4,44 @@ Agentflow is a markdown-file-based operating system for AI coding agents: it for
 
 ## Install (copy, non-destructive)
 
-The framework is a read-only template and skill pack. Installing it never overwrites your files:
+### Option A — npx (recommended, no install needed)
 
+The framework is published on GitHub. Run directly from the repo without installing anything:
+
+```powershell
+npx github:GurunathJadhav/ADM-TOOL install C:\path\to\your-project
+```
+
+Or install once globally, then use `agentflow` anywhere:
+
+```powershell
+npm install -g github:GurunathJadhav/ADM-TOOL
+agentflow install C:\path\to\your-project
+```
+
+The installer is non-destructive: it never overwrites your existing files. Existing `AGENTS.md`/`CLAUDE.md` get a clearly marked managed block appended; re-running updates only that block. Use `--dry-run` to preview first:
+
+```powershell
+npx github:GurunathJadhav/ADM-TOOL install C:\path\to\your-project --dry-run
+```
+
+### Option B — Python installer (original)
+
+From inside the ADM-Tool clone:
+
+```powershell
+python tools\install.py C:\path\to\your-project
+```
+
+If `python` isn't on PATH, use the full path:
+
+```powershell
+C:\Users\User\AppData\Local\Programs\Python\Python313\python.exe tools\install.py C:\path\to\your-project
+```
+
+Both options produce the same result: a project-local `.agentflow/` folder plus the managed block in your adapter files.
+
+The framework is a read-only template and skill pack. Installing it never overwrites your files:
 1. Copy the Agentflow files into your project root (installer or manual copy). Existing files such as `AGENTS.md` or `CLAUDE.md` are **not** overwritten — the installer appends a clearly marked managed block (`<!-- agentflow:begin v1.0.0 -->` … `<!-- agentflow:end -->`). Re-running updates only that block.
 2. Optional: run the installer's **dry-run** first — it lists exactly what it would create or change, and nothing else.
 3. Existing project rules are preserved; conflicts with Agentflow rules are listed for you to decide.

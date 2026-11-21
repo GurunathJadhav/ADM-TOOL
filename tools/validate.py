@@ -526,7 +526,10 @@ def check_manifest_compliance(rep, root, af_dir, staged_only=False):
         meta, body, _ = parse_front_matter(state_path)
         m = re.search(r"active_manifest:\s*([^\s\r\n]+)", body)
         if m and m.group(1).lower() != "none":
-            active_manifest_path = os.path.join(af_dir, m.group(1).replace(".agentflow/", ""))
+            # Manifests live in .agentflow/manifests/; try there first, then direct path.
+            direct = os.path.join(af_dir, m.group(1).replace(".agentflow/", ""))
+            in_manifests = os.path.join(af_dir, "manifests", m.group(1))
+            active_manifest_path = in_manifests if os.path.exists(in_manifests) else direct
 
     allowed_patterns = set()
     test_patterns = set()

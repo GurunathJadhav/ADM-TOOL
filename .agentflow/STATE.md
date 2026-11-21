@@ -13,12 +13,12 @@
 phase: implementation
 edit_lock: locked
 tier: 1
-active_ticket: none
-active_manifest: none
+active_ticket: T-d4e5-node-install-loop
+active_manifest: M-f6g7-node-install-loop.md (approved)
 unverified_step: none
 guidance: expert
 strictness: strict
-built_from: 20261117T191101Z-T-b2c3-agtsy-skills-lesson-created-E-n5p6-gate-lesson
+built_from: 20261121T091500Z-T-b2c3-agtsy-skills-done-E-p8q9-agtsy-final-done
 
 ## Ticket Board
 <!-- Max 10 lines. Show only: in-progress, in-review, blocked, next-ready. All others as counts. -->
