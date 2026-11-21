@@ -78,7 +78,7 @@ function main() {
         console.error("Usage: agentflow install <project> [--dry-run]");
         process.exit(2);
       }
-      const installArgs = [path.join(ROOT, "tools", "install.py"), target];
+      const installArgs = [target];
       if (dryRun) installArgs.push("--dry-run");
       process.exit(runPython(path.join(ROOT, "tools", "install.py"), installArgs) || 0);
       break;
