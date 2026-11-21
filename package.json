@@ -1,5 +1,5 @@
 {
-  "name": "agentflow",
+  "name": "agentflow-ai",
   "version": "1.0.0",
   "description": "Markdown-based, agent-agnostic operating system for AI coding agents",
   "bin": {
@@ -7,15 +7,34 @@
   },
   "files": [
     "bin/",
-    "tools/",
-    "src/"
+    "src/",
+    "tools/"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "coding-agent",
+    "framework",
+    "markdown",
+    "workflow",
+    "agentflow",
+    "claude",
+    "cursor",
+    "copilot",
+    "windsurf",
+    "cline"
   ],
   "engines": {
     "node": ">=18"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GurunathJadhav/ADM-TOOL.git"
+    "url": "https://github.com/GurunathJadhav/ADM-Tool.git"
   },
+  "homepage": "https://github.com/GurunathJadhav/ADM-Tool#readme",
+  "bugs": {
+    "url": "https://github.com/GurunathJadhav/ADM-Tool/issues"
+  },
+  "author": "Gurunath Jadhav",
   "license": "MIT"
 }
