@@ -19,19 +19,19 @@ Prepares a strictly scoped Edit Manifest (`manifests/T-<id>.md`) prior to touchi
 - [ ] Edit lock is currently `locked`.
 
 ## Steps
-1. **Simplicity Gate (§S7):**
-   - Identify the minimal, simplest design meeting the acceptance criteria.
-   - Verify: Does this introduce unnecessary abstractions, unneeded helpers, or speculative configuration?
-   - Reject any file modification that fails the YAGNI test.
+1. **Simplicity & Craft Check (§S7):**
+   - Identify the minimal clean architecture meeting the acceptance criteria (no speculative abstractions or unneeded wrapper layers).
+   - **UI/UX Rule:** Never cut visual polish, theme tokens, responsive styling, or empty/loading/error states for "simplicity". Include component + styles + test files together as one cohesive vertical slice!
+   - Reject unrelated drive-by refactors outside the ticket.
 2. **Determine File Scopes & Criterion Mapping:**
    - **Allowed to Modify:** List exact file paths (or narrow globs), each explicitly paired with its criterion ID.
-   - **Allowed to Create:** List exact new files, directories, or approved packages (highest scrutiny).
+   - **Allowed to Create:** List exact new files, directories, or approved packages.
    - **Explicitly Not Touched:** Explicitly list related modules, shared config, or protected files that must remain untouched.
 3. **Budget & Protected Paths Check:**
-   - Check proposed edits against ticket size budget:
-     - `S`: <= 3 files / 100 lines
-     - `M`: <= 7 files / 300 lines
-     - Exceeds M: HALT — split ticket into smaller units.
+   - Check proposed edits against ticket size budget (`project.md`):
+     - `S`: <= 5 files / 250 lines
+     - `M`: <= 12 files / 800 lines
+     - Exceeds M: HALT — split ticket into smaller vertical slices.
    - Cross-reference with `.agentflow/protected.md`. If any file is protected (e.g. lockfiles, CI, secrets, migrations), flag as high-risk requiring explicit user approval.
 4. **Overlap Rule Enforcement (§S5.2):**
    - Scan all active manifests in `.agentflow/manifests/`.
@@ -54,7 +54,7 @@ Prepares a strictly scoped Edit Manifest (`manifests/T-<id>.md`) prior to touchi
    - Write event:
      `events/<UTC-compact>-T-<ticket-id>-manifest-drafted-manifest-T-<ticket-id>.md`
    - Evaluate approval route:
-     - If eligible for standing approval (e.g. Size S in `src/` and tests, no protected paths): log standing approval reference in `approvals/A-<id>.md`.
+     - If eligible for standing approval SA1 (S/M feature manifest in `src/` and tests in `rapid`/`balanced`, or S-size in `strict`, with no protected paths): log standing approval reference in `approvals/A-<id>.md` (or manifest header) and proceed immediately without blocking.
      - Otherwise: add to `.agentflow/APPROVALS-NEEDED.md` and present manifest to approver in chat for sign-off.
 7. **Rebuild STATE.md:**
    - Update `STATE.md` with active manifest proposal.

@@ -19,7 +19,7 @@ Ask via `/af-ask` (max 5 per batch, blocking first). Recommended defaults includ
 5. **Browser support matrix?** Default: last 2 versions of major evergreen browsers, no IE. Why: prevents silent edge-case bug reports later; determines whether transpilation/polyfills are needed.
 6. **Responsive breakpoints?** Default: mobile-first, single breakpoint at ~768px plus desktop. Why: most traffic is mobile; fewer breakpoints = less CSS to verify.
 7. **State management?** Default: server state via query/cache library, minimal local state; no global store unless cross-page shared mutable state exists. Why: prevents over-engineering.
-8. **Design source?** Default: existing design system/component library if present, else plain unstyled components with a utility framework. Why: visual regression tests need a stable reference.
+8. **Design & styling approach?** Default: Cohesive design system (CSS tokens/variables or utility/component library) with intentional typography, spacing, light/dark surface contrast, responsive layout, and full interactive/empty/error states — **never raw browser-default unstyled HTML**. Why: UI polish must be designed into slice 1, not bolted on at the end.
 9. **i18n needed now?** Default: no, but keep all user-visible strings in one module. Why: retrofitting string extraction is expensive; doing i18n itself before it is required is scope creep.
 10. **Analytics/tracking?** Default: none without an explicit requirement. Why: tracking is often legally regulated and adds consent-handling scope.
 11. **Error reporting?** Default: client error boundary + console capture; add a hosted error service only if the owner confirms. Why: silent client crashes are invisible to server logs.
@@ -40,11 +40,11 @@ Defaults only — the user may change any of them. Phrase each as a testable tic
 
 - **Highest value:** unit tests for pure logic (form validation, state reducers), component/integration tests for interactive views, and accessibility scans per view.
 - **Contract:** if the app consumes a owned API, keep generated types or contract fixtures in sync; otherwise use mocked fixtures pinned to a real payload snapshot.
-- **Visual regression:** worth automating only when a stable design system exists; otherwise treat as manual-check.
-- **E2E:** automate one happy-path journey per critical user flow (login, core action, logout). Cap at ~5–8 journeys; more rotates.
-- **Regression set:** all unit + component tests, axe scans on touched views, the automated E2E journeys, lint, typecheck.
-- **Automated:** unit, component, accessibility scan, E2E journeys, bundle-size budget check.
-- **Manual-check:** cross-browser smoke on real devices, responsive layout on odd sizes, print styles.
+- **Visual & live runtime smoke check:** **mandatory per UI ticket** — start/build the app and verify rendered layout, CSS styling loaded, zero console/runtime errors, interactive controls work, and mobile/desktop widths don't overflow (automate via Playwright/browser check when available).
+- **E2E:** automate happy-path journeys for critical user flows (core CRUD/actions, persistence/reload, error handling). Cap at ~5–8 journeys.
+- **Regression set:** unit + component tests, build + typecheck + lint, live smoke check, and accessibility check on touched views.
+- **Automated:** unit, component, build, E2E/live DOM smoke check, console-error assertion, bundle-size budget check.
+- **Manual-check:** final aesthetic check on odd screen sizes and screen-reader walkthrough.
 - **User-confirmation:** look-and-feel against design, copy wording, accessibility beyond the automated bar (screen reader flow).
 
 ## Typical Risks
@@ -61,13 +61,13 @@ Defaults only — the user may change any of them. Phrase each as a testable tic
 
 ## Ticket Checklist
 
-Add to UI tickets:
+Add to UI tickets (pair with `.agentflow/skills/frontend-and-ui-craft/SKILL.md`):
 
-- [ ] Empty, loading, and error states defined and exercised by tests.
-- [ ] Keyboard navigation and visible focus verified (accessibility).
-- [ ] No horizontal overflow at defined breakpoints.
-- [ ] User-visible strings come from the strings module, not inline literals (i18n readiness).
-- [ ] Bundle-size budget respected or a waiver recorded.
+- [ ] Cohesive visual polish applied (design tokens, spacing, typography, hover/focus-visible/active/disabled states — no unstyled defaults).
+- [ ] Empty, loading, and error states designed, implemented, and tested.
+- [ ] Keyboard navigation (`Enter`, `Escape`, `Tab`) and visible focus verified.
+- [ ] Responsive with zero horizontal overflow at mobile (~375px) and desktop (~1280px).
+- [ ] Live runtime smoke check passed (app renders cleanly, zero console/uncaught errors, state/persistence verified).
 
 Add to auth-related tickets:
 

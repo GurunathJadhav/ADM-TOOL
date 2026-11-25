@@ -7,33 +7,36 @@ version: 1.0.0
 # TDD Implementation
 
 ## Purpose
-Implement changes one logical change at a time inside the micro-cycle: edit → relevant checks → evidence → next. Every step stays inside the approved manifest, every feature starts from a failing test, every bug is reproduced before it is fixed, and nothing is stacked on an unverified edit.
+Implement changes as clean vertical slices inside the approved manifest: edit → automated checks + live runtime smoke test → evidence → next. Every feature starts with failing tests (or runtime reproduction for bugs), edits cohesive slice files together (`rapid`/`balanced`: component + styles + tests; `strict`: 1-file micro-step), and never trusts mocked tests without running the real app.
 
 ## When to Use
-- Implementing any ticket step from an approved manifest `manifests/T-<id>.md`.
-- Fixing a bug reported by a failed regression run.
+- Implementing any ticket step or vertical slice from an approved manifest `manifests/T-<id>.md`.
+- Fixing a bug reported by a failed regression run or manual observation.
 - Any source edit, regardless of size or "triviality".
 
 ## Inputs
 - Approved manifest `manifests/T-<id>.md` and baseline `baselines/T-<id>.md`.
-- Ticket acceptance criteria and test commands from `environment/`.
-- Current file contents.
+- `project.md` (`strictness`: `rapid` | `balanced` | `strict`) for slice/step limit.
+- Ticket acceptance criteria and test/build/start commands from `environment/`.
+- Current file contents (plus `frontend-and-ui-craft/SKILL.md` for any UI work).
 
 ## Steps
-1. **Micro-cycle per step:** one logical change → run the relevant checks → capture evidence (`/af-verify`) → next step. Default unverified limit: one file or ~50 lines (adjust per strictness profile).
+1. **Unit of work (mode-aware):**
+   - **`rapid` / `balanced`:** Implement one cohesive **vertical slice** (logic + UI/styling + tests together inside the manifest budget), then verify the working slice with `/af-verify`. Do NOT split component + stylesheet + test into separate stop-and-log cycles.
+   - **`strict`:** One micro-step at a time (1 file / ~50 lines) → `/af-verify` → next step.
 2. **Verify-before-edit checklist for every manifest file:**
    - Read the current file — do not edit from memory.
    - Confirm every function, type, API, or config key you plan to use actually exists.
    - List the callers of what you are changing.
-3. **Features — red first:** a failing test must exist and be seen failing BEFORE implementing. Then implement to green. A test never seen failing is not evidence.
-4. **Bugs — reproduce first:** reproduce the bug (failing test or recorded output) and state the cause before ANY source edit. The reproduce-first rule is mandatory.
-5. **Never stack edits on unverified ones.** One unverified step exists at a time; verify or revert before the next edit.
-6. **On failure:** fix within the current step and re-verify, or run `/af-revert-unverified` back to the step baseline. After 3 failures, STOP and run `/af-stuck`.
-7. **Complete the step only when all hold:**
-   - Relevant tests pass with pasted output in an evidence record.
-   - Build, lint, and typecheck pass.
-   - The diff matches the approved manifest exactly.
-   - One verification record `verifications/V-<id>.md` written.
+3. **Features — red first:** write or add failing unit/integration tests for core behavior BEFORE or alongside the slice, observe them failing, then implement to green.
+4. **Bugs — reproduce first:** reproduce the bug (failing test or live runtime output) and state the cause before ANY source edit.
+5. **Never stack edits across unverified tickets/slices.** Verify or revert the current slice before starting the next.
+6. **On failure:** fix within the current slice and re-verify, or run `/af-revert-unverified` back to the baseline. After 3 failures, STOP and run `/af-stuck`.
+7. **Complete the slice/step only when all hold:**
+   - Automated tests, build, typecheck, and lint pass with pasted output in evidence.
+   - **Live runtime smoke check:** Start/render the actual app and verify primary flows + zero console/runtime errors (critical for UI & full-stack slices).
+   - Modified files stay within the approved manifest.
+   - One verification record `verifications/V-<id>.md` written (1 per ticket/slice in `rapid`/`balanced`).
 8. **Advance:** next manifest step, or `/af-diff-check` when all steps are done.
 
 ## Checklist

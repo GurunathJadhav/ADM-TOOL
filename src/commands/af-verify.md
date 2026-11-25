@@ -15,18 +15,19 @@ Validates the current provisional code change against acceptance criteria and qu
 ## Preconditions
 - [ ] Active ticket claimed (`active_ticket` set in `STATE.md`).
 - [ ] Active Edit Manifest approved (`active_manifest` set in `STATE.md`).
-- [ ] A provisional edit has been made within the unverified limit (max 1 file or ~50 lines).
-- [ ] Verification command or check method is identified from ticket criteria.
+- [ ] Edits stay within the manifest and mode step limit (`rapid`/`balanced`: 1 cohesive vertical slice; `strict`: 1 file / ~50 lines).
+- [ ] Verification command or runtime check method is identified from ticket criteria.
 
 ## Steps
 1. **Preflight Step Inspection:**
    - Confirm modified files are strictly listed on the approved Edit Manifest.
-   - Confirm only one provisional step was taken (no stacked unverified edits).
-2. **Execute Verification Command:**
-   - Run the specific test, lint, typecheck, or command associated with the criterion being addressed:
+   - In `strict` mode, confirm only 1 file step was taken; in `rapid`/`balanced` mode, confirm all files belong to the current cohesive ticket slice.
+2. **Execute Real Verification (Tests + Build + Live Runtime Check):**
+   - Run automated tests, typecheck, linter, and production/dev build:
      - Tier 1/2: Run command directly in environment.
      - Tier 0: Present exact command to user and request pasted terminal output.
-   - Verify that test is not skipped, assertion is not weakened, and expected output is genuine.
+   - **Live Runtime Smoke Check (required for UI/web/app tickets):** Actually run/render the app (dev/preview server, headless browser, or DOM integration check), exercise the interactive flows (create/edit/delete/filter/persist), confirm styling loads cleanly, and assert **zero console errors or uncaught runtime exceptions**.
+   - Verify that tests are not skipped, assertions are not weakened, and mocks don't hide broken app wiring.
 3. **Capture Evidence:**
    - Capture terminal/command output, trimming to the relevant ~200 lines.
    - Write evidence to `.agentflow/evidence/<ticket-id>/<step-slug>.md` with timestamp and command run.
@@ -44,9 +45,9 @@ Validates the current provisional code change against acceptance criteria and qu
        - `criterion_id: <criterion>`
        - `method: <automated-test|command-output|static-check|etc>`
        - `result: pass`
-       - `evidence_path: evidence/<ticket-id>/<step-slug>.md`
+       - `evidence_ref: evidence/<ticket-id>/<step-slug>.md`
      - Log event:
-       `events/<UTC-compact>-T-<ticket-id>-step-verified-V-<id>.md`
+       `events/<UTC-compact>-<ticket-id>-step-verified-V-<id>.md`
      - Clear `unverified_step: none` in `STATE.md`.
    - **FAIL:**
      - Increment failure counter for this step.

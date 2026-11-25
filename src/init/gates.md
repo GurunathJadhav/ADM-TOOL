@@ -8,6 +8,11 @@ logs a gate event. **The owner approves each phase advance.**
 At every gate, also review: open assumptions, deferred questions, active waivers, and decisions
 whose context may have changed.
 
+## Mode-Based Gate Cadence (`project.md` -> `strictness`)
+- **`rapid` (3 stages):** Batch *Discovery + Requirements + Tickets + Planning* into **1 single Align & Plan confirmation** with the owner, then **Build Slices** (vertical slices), then **Verify & Ship** (one final regression + live app smoke check).
+- **`balanced` (4 stages, default):** Batch *Discovery + Understanding* → *Requirements + Tickets + Planning* (2 owner confirmations instead of 4 separate gates) → *Implementation* → *Verification & Ship*.
+- **`strict`:** Full 8-gate enterprise lifecycle below.
+
 ---
 
 ## Gate: Discovery → Requirements
@@ -101,12 +106,12 @@ whose context may have changed.
 **Exit criteria (per ticket, by lane — see `lanes.md`):**
 
 ### Standard Lane
-- [ ] Evidence recorded per acceptance criterion
+- [ ] Evidence recorded per acceptance criterion (combined per-slice record valid in `rapid`/`balanced`)
 - [ ] Each verification method executed with results in `verifications/V-<id>.md`
-- [ ] Clean diff check (`/af-diff-check`) — every hunk maps to a criterion
-- [ ] Regression suite passes (`/af-regression`)
-- [ ] Independent review completed (`/af-review`)
-- [ ] All quality gates in quality profile pass
+- [ ] Clean diff check (`/af-diff-check`) — changes stay within manifest
+- [ ] Regression + build + lint/typecheck pass (`/af-regression`)
+- [ ] **Live runtime / UI smoke check passes** for user-facing changes (zero console/runtime errors, responsive layout verified)
+- [ ] Review completed (`/af-review`: structured self-review + runtime checks in `rapid`/`balanced` solo mode; independent reviewer required in `strict` or for protected paths)
 - [ ] No blocking review findings open
 - [ ] Effort budget not exceeded (or re-sized with approval)
 

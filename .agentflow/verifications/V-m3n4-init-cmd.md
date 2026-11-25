@@ -9,6 +9,7 @@ role: agent
 ticket_id: T-h8j9-one-command-init
 method: command-output
 result: pass
+evidence_ref: .agentflow/evidence/T-h8j9-one-command-init/init-verification.md
 ---
 # Verification: Single init command
 

@@ -43,7 +43,7 @@ Transitions a claimed ticket from ready to in-progress. Verifies manifest approv
      `events/<UTC-compact>-T-<ticket-id>-ticket-started-T-<ticket-id>.md`
 6. **Rebuild STATE.md:**
    - Update ticket board to show ticket as `in-progress`.
-   - Set `next_action`: execute first provisional micro-step (write failing test or minimal edit), then `/af-verify`.
+   - Set `next_action`: implement cohesive vertical slice + tests (`rapid`/`balanced`) or first micro-step (`strict`), then `/af-verify`.
 
 ## Postconditions
 - [ ] Baseline snapshot `.agentflow/baselines/T-<ticket-id>.md` created.
@@ -53,7 +53,7 @@ Transitions a claimed ticket from ready to in-progress. Verifies manifest approv
 - [ ] `STATE.md` updated and reflects in-progress status.
 
 ## Next
-- **Success:** Write minimal failing test or first provisional change, then run `/af-verify`.
+- **Success:** Implement vertical slice + tests (`rapid`/`balanced`, styling with `frontend-and-ui-craft`) or minimal step (`strict`), then run `/af-verify`.
 - **Failure (unapproved manifest):** Request manifest approval from user.
 - **Blocked (dirty tree):** Request user clean or commit unrelated changes before proceeding.
 

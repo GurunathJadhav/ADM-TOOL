@@ -22,31 +22,46 @@ Everything is **Markdown**. No database, no network calls, no telemetry. Works i
 be bypassed by an agent with unrestricted file access; user-owned commits, independent review, and
 CI are the real backstop. See `docs/limits-of-enforcement.md`.
 
+## Workflow Modes (`strictness`)
+
+Pick the pace that matches your project during `/af-start`:
+- **`rapid`** — Fast MVPs, solo tools & prototypes: 3 stages (*Align → Build Vertical Slices → Verify & Ship*), slice-level verification + live runtime smoke test, solo self-review.
+- **`balanced` (default)** — Production apps without paperwork bloat: cohesive vertical slices (component + styles + tests together), standing approvals for `src/` + tests, live app runtime verification.
+- **`strict`** — Enterprise / compliance: full 9-phase governance, 1-file edit steps, mandatory independent review per ticket.
+
 ## Quick start
 
-1. Copy the framework into your project (never overwrites existing files):
-   `python tools/install.py <your-project> --dry-run` then without `--dry-run`.
+1. Initialize Agentflow in your project (zero dependencies, never overwrites existing files):
+   ```bash
+   npx github:GurunathJadhav/ADM-TOOL init <your-project>
+   # or from a local clone:
+   node bin/agentflow.js init <your-project>
+   ```
    Manual procedure: `INSTALL.md`.
-2. In your agent, run `/af-start` (or "follow AGENTS.md"). The agent declares its tier, proposes a
-   defaults sheet for your approval, and starts the discovery interview.
-3. Full walkthrough: `docs/quickstart.md`.
+2. **Antigravity CLI users:** Run `/skills reload` once so `.agents/skills/af-*` appear as native slash commands.
+3. In your agent, run `/af-start` (or `"follow AGENTS.md"`). The agent probes its tier, confirms your mode (`rapid` / `balanced` / `strict`), and starts focused discovery.
+4. Full walkthrough: `docs/quickstart.md`.
 
 ## Repository layout
 
 ```
+bin/
+  agentflow.js        zero-dependency Node CLI (init, install, loop, doctor, validate, uninstall)
 src/
   format-spec.md      authoritative record schema (front matter, IDs, timestamps)
   init/               policy + state files installed into a project's .agentflow/
   templates/          one Markdown template per record type
   commands/           54 command prompt files (/af-*)
-  skills/             34 skills, including the using-agentflow router
-  adapters/           AGENTS.md / CLAUDE.md / generic fallback (managed blocks)
+  skills/             35 skills (router, frontend-and-ui-craft, tdd-implementation, lean-architecture, ...)
+  adapters/           AGENTS.md / CLAUDE.md / antigravity / generic fallback (managed blocks)
   profiles/           per-project-type question banks and defaults (7 profiles)
 docs/                 quickstart, concepts, adapter guide, custom skills, enforcement limits
 evals/                golden example project + bad-behaviour scenarios (S19)
 tools/
-  install.py          optional non-destructive installer (dry-run, managed blocks)
+  install.py          optional Python installer (dry-run, managed blocks)
   validate.py         optional Tier-1 validator (Python, zero dependencies)
+  agentflow-loop.js   interactive blocking-question terminal loop
+  agentflow-gate.js   pre-edit gate checker
 ```
 
 ## Core commands (8 of 54)

@@ -7,13 +7,12 @@ version: 1.0.0
 # Lean Architecture
 
 ## Purpose
-Enforce a mandatory simplicity gate before any design artifact or source change. Every addition of complexity — dependencies, layers, patterns, services, config — must be justified against a concrete acceptance criterion or it is rejected. Prefer boring, standard technology the user has approved.
+Enforce a mandatory simplicity gate before adding **code/infrastructure complexity** (dependencies, wrapper layers, micro-patterns, config knobs). Every addition of architectural complexity must be justified against a concrete requirement, while **visual polish, UX ergonomics, and defensive edge-case handling are never cut in the name of simplicity**.
 
 ## When to Use
-- Before writing a design, data model, or API contract for a ticket.
-- Before proposing any new dependency, abstraction, pattern, or service.
-- Before adding any configuration option or environment knob.
-- When a ticket's criteria could be met by more than one design.
+- Before designing a backend, data model, state architecture, or API contract.
+- Before proposing any new third-party dependency, abstraction layer, or config option.
+- When building UI components: pair this skill with `frontend-and-ui-craft` so architecture stays lean while UI looks cohesive and complete.
 
 ## Inputs
 - Ticket `manifests/T-<id>.md` with acceptance criteria.
@@ -50,6 +49,7 @@ Enforce a mandatory simplicity gate before any design artifact or source change.
 - Treating the simplicity gate as a formality filled in after the design is fixed.
 - Exceeding the Complexity Budget silently and hoping review misses it.
 - Writing an API contract or observability plan no ticket asked for.
+- **Using "simplicity" as an excuse to ship unstyled HTML, broken responsive layouts, or missing empty/error/loading states.** Keep plumbing simple; keep product quality high.
 
 ## "Stop and Ask the User If…"
 - The only compliant design exceeds the Complexity Budget.

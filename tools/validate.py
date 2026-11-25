@@ -347,6 +347,24 @@ def latest_ticket_status(af_dir):
     return statuses
 
 
+def _ticket_aliases(tid):
+    """Return exact ticket ID and its short T-xxxx prefix if slugged."""
+    s = str(tid or "")
+    parts = s.split("-")
+    aliases = {s}
+    if len(parts) >= 2 and parts[0].upper() == "T":
+        aliases.add("-".join(parts[:2]))
+    return aliases
+
+
+def _project_strictness(af_dir):
+    p = os.path.join(af_dir, "project.md")
+    if os.path.exists(p):
+        meta, _, _ = parse_front_matter(p)
+        return str(meta.get("strictness", "balanced")).lower()
+    return "balanced"
+
+
 def check_done_evidence(rep, af_dir, ticket_status):
     """A ticket marked done must have a passing verification record and an evidence ref."""
     verifs = {}
@@ -360,7 +378,8 @@ def check_done_evidence(rep, af_dir, ticket_status):
             if err is None and meta.get("result") == "pass":
                 tid = str(meta.get("ticket_id"))
                 ev_ref = meta.get("evidence_ref")
-                verifs[tid] = (path, ev_ref)
+                for alias in _ticket_aliases(tid):
+                    verifs[alias] = (path, ev_ref)
 
     reviews = set()
     rdir = os.path.join(af_dir, "reviews")
@@ -370,12 +389,23 @@ def check_done_evidence(rep, af_dir, ticket_status):
                 continue
             meta, _, err = parse_front_matter(os.path.join(rdir, name))
             if err is None:
-                reviews.add(str(meta.get("ticket_id")))
+                for alias in _ticket_aliases(meta.get("ticket_id")):
+                    reviews.add(alias)
+
+    ticket_files = {}
+    tdir = os.path.join(af_dir, "tickets")
+    if os.path.isdir(tdir):
+        for name in os.listdir(tdir):
+            if name.endswith(".md"):
+                for alias in _ticket_aliases(name[:-3]):
+                    ticket_files[alias] = os.path.join(tdir, name)
+
+    strictness = _project_strictness(af_dir)
 
     for ticket, status in ticket_status.items():
         if status != "done":
             continue
-        tpath = os.path.join(af_dir, "tickets", "%s.md" % ticket)
+        tpath = ticket_files.get(ticket, os.path.join(af_dir, "tickets", "%s.md" % ticket))
         lane = "standard"
         if os.path.exists(tpath):
             meta, _, _ = parse_front_matter(tpath)
@@ -388,7 +418,10 @@ def check_done_evidence(rep, af_dir, ticket_status):
                 rep.error(vpath, "verification record for ticket %s has no evidence_ref" % ticket)
 
         if lane == "standard" and ticket not in reviews:
-            rep.error(tpath, "gate failure: standard lane ticket is 'done' without an independent review record")
+            if strictness in ("rapid", "light"):
+                rep.note("ticket %s done without separate review record (allowed in %s mode)" % (ticket, strictness))
+            else:
+                rep.error(tpath, "gate failure: standard lane ticket is 'done' without an independent review record")
 
 
 def check_claims_evidence(rep, af_dir):
@@ -457,22 +490,24 @@ def check_manifest_overlaps(rep, af_dir):
         if err or meta.get("type") != "manifest":
             continue
         ticket = str(meta.get("ticket_id", name[:-3]))
-        if ticket_status.get(ticket) in ("done", "cancelled", "superseded", "deferred"):
+        if any(ticket_status.get(a) in ("done", "cancelled", "superseded", "deferred") for a in _ticket_aliases(ticket)):
             continue
         for field in ("allowed_to_modify", "allowed_to_create"):
             vals = meta.get(field)
             if isinstance(vals, list):
                 for pattern in vals:
-                    claims.setdefault(pattern, []).append(ticket)
+                    claims.setdefault(pattern, set()).add(ticket)
             elif vals:
-                claims.setdefault(str(vals), []).append(ticket)
+                claims.setdefault(str(vals), set()).add(ticket)
     for pattern, tickets in sorted(claims.items()):
         if len(tickets) > 1:
-            rep.error(mdir, "manifest overlap: %r claimed by multiple active tickets: %s (§S5.2)" % (pattern, ", ".join(tickets)))
+            rep.error(mdir, "manifest overlap: %r claimed by multiple active tickets: %s (§S5.2)" % (pattern, ", ".join(sorted(tickets))))
 
 
 def get_git_changed_files(root, staged_only=False):
-    """Retrieve changed files from git if repository exists."""
+    """Retrieve changed files from git if target root itself is a git repository."""
+    if not os.path.exists(os.path.join(root, ".git")):
+        return []
     cmd = ["git", "diff", "--name-only"]
     if staged_only:
         cmd.append("--cached")

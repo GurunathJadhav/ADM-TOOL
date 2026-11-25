@@ -9,9 +9,9 @@ Lanes control how much process a change goes through. The agent proposes the lan
 ## Lane: Trivial
 
 **Criteria:**
-- Change is ≤ 5 lines of code
-- Change touches ≤ 1 file
-- Change is a typo fix, copy edit, comment correction, or tiny config tweak
+- Change is ≤ 10 lines of code (`strict`: ≤ 5 lines)
+- Change touches ≤ 2 files (`strict`: ≤ 1 file)
+- Change is a typo fix, copy edit, comment correction, single CSS token tweak, or tiny config tweak
 - No logic change, no new behaviour, no API change
 - No protected or frozen files involved
 
@@ -49,19 +49,20 @@ No full interview or ticket lifecycle required.
 - Normal feature work, refactoring, bug fixes, enhancements
 - Full ticket lifecycle applies
 
-**Done definition:**
-- [ ] Evidence recorded per acceptance criterion
+**Done definition (by mode in `project.md`):**
+- [ ] Evidence recorded per acceptance criterion (`rapid`/`balanced`: 1 combined verification + evidence record per ticket/slice is valid)
 - [ ] Each verification method executed with results in `verifications/V-<id>.md`
-- [ ] Clean diff check — every changed hunk maps to an acceptance criterion
-- [ ] Regression suite passes
-- [ ] Independent review completed (different agent, fresh session, or human)
-- [ ] All quality gates in the quality profile pass
-- [ ] No blocking review findings open
+- [ ] Clean diff check — changed files stay within manifest; no broken dead code
+- [ ] Regression + build + lint + typecheck pass
+- [ ] **Live runtime smoke check** passes for user-facing/app tickets (renders cleanly, interactive flows work, zero console/runtime errors)
+- [ ] Review completed:
+  - `rapid` / `balanced` (solo): structured self-review + automated checks (`R-<id>` optional in `rapid`, recommended with `reviewer_type: fresh-session` or `agent` in `balanced`)
+  - `strict` or protected paths: mandatory independent review (`reviews/R-<id>.md`)
 - [ ] Effort budget not exceeded (or re-sized with approval)
 
-**Full process:**
-claim → edit plan and manifest → simplicity check → baseline → TDD micro-cycles with verification
-→ diff check → regression → independent review → evidence → done
+**Process:**
+- **`rapid` / `balanced`:** claim + manifest (standing approval SA1 for `src/`+tests) → baseline → build vertical slice (logic + UI/styles + tests together) → run tests, build, and live runtime smoke check (`/af-verify`) → diff/self-check → `/af-done`
+- **`strict`:** claim → edit plan and manifest → simplicity check → baseline → 1-file TDD micro-cycles with verification → diff check → regression → independent review → evidence → done
 
 **Classification examples:**
 | Change | Lane | Reason |

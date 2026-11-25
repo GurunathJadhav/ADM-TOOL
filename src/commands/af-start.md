@@ -22,20 +22,21 @@ Initialize Agentflow in a new or existing repository. Probes agent runtime capab
    - Test command execution capabilities (can the agent execute terminal commands? If yes -> declare Tier 1).
    - Check if automated git hooks, CI pipelines, or MCP servers are available (if yes -> declare Tier 2).
    - Record declared tier (`tier: 0 | 1 | 2`) for environment configuration.
-2. **Present Defaults Sheet:**
-   - Present the project configuration defaults to the user for explicit owner approval:
-     - `strictness`: strict (or balanced / light)
+2. **Present Defaults Sheet (with Mode Preset):**
+   - Ask project scale first or propose the defaults sheet with recommended preset for explicit owner approval:
+     - `strictness`: **`balanced` (recommended default)** | `rapid` (fast MVPs/small solo apps: 3 stages, slice-level verify, solo self-review) | `strict` (full 9-phase enterprise governance)
      - `guidance`: expert (or guided / standard)
      - `user_level`: technical (or non-technical)
-     - `discovery_depth`: per-project (express / standard / deep)
+     - `discovery_depth`: adaptive (`express` for simple apps, `standard`, or `deep`)
      - `roles`: solo (owner holds all roles) or team
      - `record_language`: en
-     - `trivial_lane`: <= 5 lines, <= 1 file
-     - `unverified_step_limit`: 1 file
-     - `edit_budgets`: S = 3 files / 100 lines, M = 7 files / 300 lines, L = must split
-     - `coverage_target`: 80%
+     - `trivial_lane`: <= 10 lines, <= 2 files (`strict`: <= 5 lines, <= 1 file)
+     - `unverified_step_limit`: `1 feature slice` (`rapid`/`balanced`) or `1 file` (`strict`)
+     - `edit_budgets`: S = 5 files / 250 lines, M = 12 files / 800 lines, L = must split
+     - `ui_craft`: cohesive design tokens + responsive polish (`frontend-and-ui-craft`) + live smoke verification for any UI app
+     - `coverage_target`: 80% (per release in `rapid`/`balanced`; per ticket in `strict`)
      - `framework_license`: MIT
-   - Request explicit owner approval or customized values.
+   - Request explicit owner approval or customized values (in `rapid` mode, combine defaults approval + initial clarifying questions in one message).
 3. **Generate Identity & Directory Layout:**
    - Generate a unique `project_id` (e.g., `proj-4 random base32 chars-name`).
    - Create directory structure under `.agentflow/`:

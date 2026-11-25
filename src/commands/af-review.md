@@ -26,18 +26,18 @@ Enforces the mandatory Independent Review requirement before any Standard ticket
      - Unified diff against baseline.
      - Evidence logs from `evidence/<ticket-id>/`.
    - Strip all internal author reflections, notes, or speculative reasoning to prevent confirmation bias.
-2. **Assign Reviewer Role:**
-   - Determine reviewer mode from `project.md` and `strictness`:
-     - **Strict / Protected Paths / Must Tickets:** Human reviewer sign-off required.
-     - **Balanced:** Independent agent session or human reviewer.
-     - **Light:** Fresh session self-check permitted.
+2. **Assign Reviewer Role (Mode-Aware):**
+   - Determine reviewer mode from `project.md` (`strictness` and `roles`):
+     - **`strict` / Protected Paths:** Independent session/agent or human reviewer sign-off required.
+     - **`balanced` (solo):** Fresh-session check or structured self-review (`reviewer_type: fresh-session` or `agent`) with mandatory re-execution of checks and UI/edge-case audit.
+     - **`rapid` (solo):** Structured self-review + verified runtime smoke check (no blocking wait on external reviewer).
 3. **Execute Review Checks & Re-Run Verifications:**
    - Reviewer audits code for:
-     - Correctness against Given/When/Then acceptance criteria.
+     - Correctness against Given/When/Then acceptance criteria and edge cases (empty inputs, long text, error states, persistence).
+     - **Visual & UX polish** (for UI tickets: responsive layout, interactive states, cohesive styling — reject raw/unstyled components as a blocking finding).
      - Security vulnerabilities (injection, auth, data leakage).
-     - Code clarity, maintainability, and absence of over-engineering.
-     - Adherence to project architecture and decisions.
-   - **Re-run verification commands:** The reviewer must directly execute the verification commands to prove the results match recorded evidence.
+     - Code clarity and absence of over-engineered abstractions.
+   - **Re-run verification commands:** Execute tests + build + live runtime check directly to prove results are current.
 4. **Draft Review Record:**
    - Create `.agentflow/reviews/R-<4 base32 chars>-<slug>.md` with front matter:
      - `type: review`

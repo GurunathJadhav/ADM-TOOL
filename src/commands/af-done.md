@@ -15,10 +15,9 @@ Formally marks an active ticket as `done`. Enforces the full Definition of Done 
 ## Preconditions
 - [ ] Active ticket set in `STATE.md` (`active_ticket: T-...`).
 - [ ] No unverified steps pending (`unverified_step: none`).
-- [ ] Verification records exist in `verifications/` for every acceptance criterion.
-- [ ] `/af-diff-check` completed with all modified hunks mapped to criteria.
-- [ ] `/af-regression` completed with full regression suite or smoke set passing.
-- [ ] Independent review completed (`reviews/R-*.md`) with zero blocking findings.
+- [ ] Verification records (`verifications/V-*.md` with `evidence_ref`) exist covering all acceptance criteria (1 combined record per slice valid in `rapid`/`balanced`).
+- [ ] `/af-diff-check` and `/af-regression` (including build + live runtime smoke check for UI/apps) passed cleanly.
+- [ ] Review completed (`reviews/R-*.md` required in `strict`, `balanced` Standard lane, or when touching protected paths; optional in `rapid` solo mode) with zero blocking findings.
 - [ ] For incident lane: reproduction evidence recorded, fix verified, follow-up ticket created.
 
 ## Steps
@@ -33,9 +32,9 @@ Formally marks an active ticket as `done`. Enforces the full Definition of Done 
 3. **Engage Edit Lock:**
    - Set `edit_lock: locked` in project state. Source editing is immediately disabled.
 4. **Log Completion Event:**
-   - Write completion event:
-     `events/<UTC-compact>-T-<ticket-id>-ticket-done-T-<ticket-id>.md`
-   - Include references to all verification records (`V-...`), diff check, regression event, and review record (`R-...`).
+   - Write completion event using the **full ticket ID** (matching `tickets/<ticket-id>.md` and `verifications/*.md`):
+     `events/<UTC-compact>-<ticket-id>-ticket-done-E-<id>.md`
+   - Include references to verification records (`V-...`), diff check, regression event, and review record (`R-...`).
 5. **Clear Active Ticket Context:**
    - Reset `active_ticket: none` and `active_manifest: none`.
 6. **Rebuild STATE.md:**

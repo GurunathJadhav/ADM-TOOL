@@ -15,9 +15,8 @@
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
-const { execFileSync } = require("child_process");
+const nodeCrypto = require("crypto");
 
-const PYTHON = "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
 const BASE32_ALPHABET = "0123456789abcdefghjkmnpqrstvwxyz"; // no i, l, o, u
 
 function compactNow() {
@@ -37,13 +36,12 @@ function base32(n) {
 }
 
 function randomId() {
-  const bytes = new Uint8Array(2);
-  crypto.getRandomValues(bytes);
+  const bytes = nodeCrypto.randomBytes(2);
   return base32((bytes[0] << 8) | bytes[1]);
 }
 
 function parseRecord(filePath) {
-  const text = fs.readFileSync(filePath, "utf8");
+  const text = fs.readFileSync(filePath, "utf8").replace(/^\uFEFF/, "");
   let frontMatter = {};
   let body = text;
 

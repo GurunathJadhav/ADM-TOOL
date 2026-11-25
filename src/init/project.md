@@ -13,12 +13,17 @@ reviewers:
 observers: []
 user_level: technical
 guidance: expert
-discovery_depth: per-project
-strictness: strict
+discovery_depth: adaptive
+strictness: balanced
 ---
 
 # Project Configuration
 <!-- Template: copied to .agentflow/project.md at bootstrap. Fill in placeholder values during /af-start. -->
+
+## Workflow Modes (`strictness`)
+- **`rapid`**: Small apps, MVPs, solo prototypes. 3 fast stages (*Align → Build Slices → Verify & Ship*). Slice-level verification + live app smoke test; self-review allowed in solo mode.
+- **`balanced` (default)**: Production apps & daily development. Concise discovery + batched plan confirmation; multi-file vertical slices (`S`/`M` standing approvals in `src/` + tests); runtime + test verification per ticket; structured self-review + automated checks in solo mode.
+- **`strict`**: Regulated, high-assurance, or multi-team repos. Full 9-phase lifecycle, 1-file unverified step limit, and mandatory independent review on every Standard ticket.
 
 ## Roles
 
@@ -40,28 +45,24 @@ runtime dependencies, scope expansion, and rule changes are **never** covered by
 
 | ID  | Scope                                                                 | Conditions                                  |
 |-----|-----------------------------------------------------------------------|---------------------------------------------|
-| SA1 | S-size manifests touching only `src/` and its test files              | Files within `src/` and corresponding tests |
+| SA1 | S or M feature manifests touching `src/` and test files (`rapid`/`balanced`) | Files within `src/` and tests; no protected paths (`strict`: S-size only) |
 | SA2 | Dev dependencies (permissive licence, ≤2 packages per addition)       | Permissive licence (MIT, Apache-2.0, BSD), max 2 packages |
-| SA3 | Trivial-lane tasks (≤5 lines, ≤1 file)                               | Meets trivial-lane criteria in `lanes.md`   |
+| SA3 | Trivial-lane tasks (≤10 lines, ≤2 files, non-logic)                    | Meets trivial-lane criteria in `lanes.md`   |
 
 ## Quality Profile
 
-Quality gates checked at the indicated frequency. Each must pass for the relevant gate to clear.
-A gate that cannot run is marked **unverified** and requires owner sign-off.
+Quality gates checked at the indicated frequency. Skip unconfigured tools only with explicit note; core build, test, and live smoke checks are never skipped.
 
 | Gate                  | Command                      | Pass Condition                | Frequency          |
 |-----------------------|------------------------------|-------------------------------|---------------------|
-| Formatter             | `<formatter-cmd>`            | No formatting diff            | Per step            |
-| Linter                | `<linter-cmd>`               | Zero errors                   | Per step            |
-| Type check            | `<typecheck-cmd>`            | Zero errors                   | Per step            |
-| Static analysis       | `<static-analysis-cmd>`      | Zero high/critical findings   | Per ticket          |
-| Dependency audit      | `<dep-audit-cmd>`            | Zero known vulnerabilities    | Per ticket          |
-| Secret scan           | `<secret-scan-cmd>`          | Zero findings                 | Per ticket          |
-| Licence check         | `<licence-check-cmd>`        | All permissive                | Per ticket          |
-| Coverage target       | `<coverage-cmd>`             | ≥ 80%                         | Per ticket          |
-| Accessibility check   | `<a11y-cmd>`                 | Zero critical findings        | Per ticket (UI)     |
-| Performance budget    | `<perf-cmd>`                 | Within stated budgets         | Per release         |
-| Build reproducibility | `<build-cmd>`                | Deterministic output          | Per release         |
+| Type check / Build    | `<typecheck-or-build-cmd>`   | Zero errors                   | Per slice / ticket  |
+| Linter / Formatter    | `<linter-cmd>`               | Zero errors                   | Per slice / ticket  |
+| Automated tests       | `<test-cmd>`                 | All relevant tests pass       | Per slice / ticket  |
+| Live app smoke check  | `<start-or-e2e-cmd>`         | Renders/runs, 0 console errors| Per slice / ticket  |
+| Accessibility check   | `<a11y-cmd>`                 | Keyboard nav + contrast/labels| Per ticket (UI)     |
+| Coverage target       | `<coverage-cmd>`             | ≥ 80% (or mode target)        | Per release (`strict`: per ticket) |
+| Dependency & secret scan | `<audit-secret-cmd>`      | Zero findings / vulns         | Per release (`strict`: per ticket) |
+| Licence & perf budget | `<perf-licence-cmd>`         | Permissive & within budget    | Per release         |
 
 ## Effort Budgets
 
@@ -69,8 +70,8 @@ Size limits for tickets. Exceeding a budget triggers stop-and-ask.
 
 | Size | Max Files | Max Lines | Approx Steps | Approx Retries | Notes                              |
 |------|-----------|-----------|---------------|----------------|------------------------------------|
-| S    | 3         | 100       | ~5            | 2              | —                                  |
-| M    | 7         | 300       | ~12           | 3              | —                                  |
+| S    | 5         | 250       | ~4            | 3              | Fits component + styles + tests    |
+| M    | 12        | 800       | ~8            | 3              | Fits cohesive vertical feature     |
 | L    | —         | —         | —             | —              | Must be split into S or M tickets  |
 
 ## Profile

@@ -49,7 +49,8 @@ Turns the current project state into the one correct next command. This skill is
 - Any required input is a human approval, answer, or credential.
 
 ## Next Skills
-Depends on the map row's "Skills Loaded" column — typical next skills: `intake`, `requirements-elicitation`, `change-control`, `session-handoff-resume`.
+Depends on the map row's "Skills Loaded" column — typical next skills: `intake`, `requirements-elicitation`, `change-control`, `frontend-and-ui-craft`, `tdd-implementation`, `session-handoff-resume`.
+Respect `strictness` in `project.md` (`rapid` | `balanced` | `strict`) so simple apps stay fast and high-craft instead of bogging down in per-file ceremony.
 
 ## Worked Example
 Session starts; `STATE.md` says phase `implementation`, ticket `T-x4kq-login` in progress, one unverified step, `next_action: /af-verify`. Router output: "Next command: `/af-verify` — you have one unverified edit on T-x4kq-login; verifying it clears the step and updates evidence. Preconditions met (ticket claimed, manifest approved). Load `.agentflow/skills/anti-hallucination-verification/SKILL.md` if verification commands are unknown. Re-grounding: re-read `STATE.md` after this transition."
