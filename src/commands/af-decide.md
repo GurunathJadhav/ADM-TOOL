@@ -35,11 +35,13 @@ Documents significant technical, architectural, or design choices as immutable A
      - `project_id: <project_id>`
      - `schema_version: 1.0.0`
      - `created: <UTC-compact>`
-     - `actor: agent`
+     - `actor: agent` (or `<github-username>` from `.agentflow/project.md` `owner:` if human-authored)
      - `role: architect`
+     - `approved_by: <github-username from project.md owner:>` (NEVER write literal `"owner"` or `"<owner-name>"`)
      - `decision_type: <one-way|two-way>`
-     - `status: proposed` (or `approved` if confirmed)
+     - `status: proposed` (or `accepted` if confirmed by `<github-username>`)
      - `supersedes: <D-prior-id or none>`
+   - **Identity Rule:** Never write generic `"owner"` in decision files — always write the GitHub username from `.agentflow/project.md`.
    - In the body, document:
      - Context & Problem Statement
      - Options Considered (with detailed trade-offs)

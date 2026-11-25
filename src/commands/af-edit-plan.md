@@ -37,26 +37,10 @@ Prepares a strictly scoped Edit Manifest (`manifests/T-<id>.md`) prior to touchi
    - Scan all active manifests in `.agentflow/manifests/`.
    - Ensure none of the proposed files are currently claimed by another in-progress ticket.
    - If a collision exists, work cannot start until the previous ticket finishes or the owner approves an explicit sequencing.
-5. **Write Edit Manifest Record:**
-   - Create `.agentflow/manifests/T-<ticket-id>.md` with front matter:
-     - `type: manifest`
-     - `id: manifest-T-<ticket-id>`
-     - `project_id: <project_id>`
-     - `schema_version: 1.0.0`
-     - `created: <UTC-compact>`
-     - `actor: agent`
-     - `role: implementer`
-     - `ticket_id: T-<ticket-id>`
-     - `size: <S|M>`
-     - `status: pending_approval`
-   - Document allowed to modify, allowed to create, forbidden files, edit budget, and simplicity justification in the body.
-6. **Log Event & Check Approvals:**
-   - Write event:
-     `events/<UTC-compact>-T-<ticket-id>-manifest-drafted-manifest-T-<ticket-id>.md`
-   - Evaluate approval route:
-     - If eligible for standing approval SA1 (S/M feature manifest in `src/` and tests in `rapid`/`balanced`, or S-size in `strict`, with no protected paths): log standing approval reference in `approvals/A-<id>.md` (or manifest header) and proceed immediately without blocking.
-     - Otherwise: add to `.agentflow/APPROVALS-NEEDED.md` and present manifest to approver in chat for sign-off.
-7. **Rebuild STATE.md:**
+5. **Write Edit Manifest & Log Approval (prefer `.agentflow/scripts/af_records.py` to save tokens):**
+   - **Fast Tier 1/2 path:** Run `python .agentflow/scripts/af_records.py plan --ticket T-<id> --modify a.ts,b.css --create c.test.ts --sa1` (omit `--sa1` when protected paths or explicit owner approval is needed, then record with `af_records.py approval`). Then run `python .agentflow/scripts/af_records.py start --ticket T-<id>` once approved.
+   - **Tier 0 fallback:** Create `.agentflow/manifests/T-<ticket-id>.md` manually (`type: manifest`, `ticket_id`, `status`), log `manifest-drafted` event, and check SA1 eligibility.
+6. **Rebuild STATE.md:**
    - Update `STATE.md` with active manifest proposal.
 
 ## Postconditions

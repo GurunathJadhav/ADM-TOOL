@@ -90,12 +90,33 @@ function findOpenBlockingQuestions(qDir) {
   return open;
 }
 
+function recOwner(afDir) {
+  const p = path.join(afDir, "project.md");
+  if (fs.existsSync(p)) {
+    const rec = parseRecord(p);
+    const o = rec.frontMatter.owner;
+    if (o && !o.includes("<") && o.toLowerCase() !== "owner") return o;
+  }
+  const { spawnSync } = require("child_process");
+  const gh = spawnSync("gh", ["api", "user", "-q", ".login"], { cwd: path.dirname(afDir), encoding: "utf8" });
+  if (gh.status === 0 && gh.stdout && gh.stdout.trim()) return gh.stdout.trim();
+  const origin = spawnSync("git", ["remote", "get-url", "origin"], { cwd: path.dirname(afDir), encoding: "utf8" });
+  if (origin.status === 0 && origin.stdout) {
+    const m = origin.stdout.trim().match(/github\.com[:/]([^/]+)\//i);
+    if (m && m[1]) return m[1];
+  }
+  const gn = spawnSync("git", ["config", "--get", "user.name"], { cwd: path.dirname(afDir), encoding: "utf8" });
+  if (gn.status === 0 && gn.stdout && gn.stdout.trim()) return gn.stdout.trim();
+  return process.env.GITHUB_USER || process.env.USER || process.env.USERNAME || "developer";
+}
+
 function writeAnswerEvent(afDir, questionId, answer) {
   const eventsDir = path.join(afDir, "events");
   fs.mkdirSync(eventsDir, { recursive: true });
   const id = `E-${randomId()}-answer-${questionId}`;
   const fileName = `${compactNow()}-none-question-answered-${id}.md`;
-  const content = `---\ntype: event\nid: ${id}\nproject_id: ${recProjectId(afDir)}\nschema_version: 1.0.0\ncreated: ${compactNow()}\nactor: owner\nrole: owner\nevent_type: question-answered\nticket_id: none\nsummary: Owner answered blocking question ${questionId}\n---\n\n# Question answered: ${questionId}\n\nAnswer: "${answer}"\n`;
+  const ownerName = recOwner(afDir);
+  const content = `---\ntype: event\nid: ${id}\nproject_id: ${recProjectId(afDir)}\nschema_version: 1.0.0\ncreated: ${compactNow()}\nactor: ${ownerName}\nrole: approver\nevent_type: question-answered\nticket_id: none\nsummary: ${ownerName} answered blocking question ${questionId}\n---\n\n# Question answered: ${questionId}\n\nAnswered by: ${ownerName}\nAnswer: "${answer}"\n`;
   fs.writeFileSync(path.join(eventsDir, fileName), content, "utf8");
 }
 

@@ -31,15 +31,9 @@ Formally marks an active ticket as `done`. Enforces the full Definition of Done 
    - Confirm no assertions were deleted or disabled.
 3. **Engage Edit Lock:**
    - Set `edit_lock: locked` in project state. Source editing is immediately disabled.
-4. **Log Completion Event:**
-   - Write completion event using the **full ticket ID** (matching `tickets/<ticket-id>.md` and `verifications/*.md`):
-     `events/<UTC-compact>-<ticket-id>-ticket-done-E-<id>.md`
-   - Include references to verification records (`V-...`), diff check, regression event, and review record (`R-...`).
-5. **Clear Active Ticket Context:**
-   - Reset `active_ticket: none` and `active_manifest: none`.
-6. **Rebuild STATE.md:**
-   - Update ticket board counts (increment `done` count, remove from active list).
-   - Set `next_action`: `/af-next` (or `/af-accept` if epic is complete).
+4. **Close & Refresh (prefer `.agentflow/scripts/af_gate_runner.py` to save tokens):**
+   - **Fast Tier 1/2 path:** Run `python .agentflow/scripts/af_gate_runner.py close-ticket --ticket <ticket-id> --actual-min <mins> --actual-tokens "~<N>k" --self-review "<summary>"` — it verifies `V-*` / `R-*`, locks `edit_lock`, logs `ticket-done`, rebuilds `STATE.md`, and refreshes `.agentflow/report.html` + `BUILD-BRIEF.md`.
+   - **Manual fallback:** Write `events/<UTC-compact>-<ticket-id>-ticket-done-E-<id>.md` referencing `V-*` and `R-*`, clear `active_ticket`, lock `edit_lock`, rebuild `STATE.md`, and run `node .agentflow/report.js`.
 
 ## Postconditions
 - [ ] Ticket transition event `events/<UTC-compact>-T-<id>-ticket-done-T-<id>.md` logged.

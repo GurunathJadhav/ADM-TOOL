@@ -18,6 +18,7 @@ Enforces the mandatory Diff Gate prior to ticket completion (§S5.9). Generates 
 - [ ] Baseline snapshot exists in `baselines/T-<id>.md`.
 
 ## Steps
+0. **Fast Tier 1/2 Path (Recommended):** Run `python .agentflow/scripts/af_test_runner.py diff-check --ticket <ticket-id>` — checks changed files against the approved manifest, scans added lines for accidental secrets or `debugger`/`pdb` leftovers, writes `evidence/` + `verifications/V-*-diff-check.md`, and logs `diff-checked`.
 1. **Generate Diff Against Baseline:**
    - Run `git diff <baseline_commit>` (Tier 1/2) or perform unified line-by-line diff comparison against `baselines/T-<ticket-id>.md` (Tier 0).
    - Capture all additions, modifications, and deletions.

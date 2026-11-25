@@ -42,31 +42,13 @@ Creates a user-story ticket (`tickets/T-<id>.md`) for a discrete unit of functio
    - Own test command: specific command to test this ticket's changes.
    - Regression set: command for regression suite or smoke set.
    - File-to-test mapping: manifest file paths mapped to test files or test tags.
-4. **Define Scope Bounds:**
+4. **Define Scope Bounds & Telemetry:**
    - List explicit dependencies (`depends_on: [T-...]`).
    - List explicit out-of-scope items to prevent scope creep.
-   - Set effort budget: estimated steps, retry limit (max 3), approximate token budget.
-5. **Write Ticket Record:**
-   - Generate ticket ID: `T-<4 base32 chars>-<slug>`.
-   - Write `.agentflow/tickets/T-<id>.md` with required front matter:
-     - `type: ticket`
-     - `id: T-<id>`
-     - `project_id: <project_id>`
-     - `schema_version: 1.0.0`
-     - `created: <UTC-compact>`
-     - `actor: <actor>`
-     - `role: <role>`
-     - `ticket_type: <story|task|spike|bug|change>`
-     - `lane: <standard|trivial|incident>`
-     - `priority: <must|should|could|wont>`
-     - `size: <S|M>`
-     - `req_id: <REQ-id>`
-     - `status: backlog` (derived from latest event)
-6. **Log Event:**
-   - Write event:
-     `events/<UTC-compact>-T-<id>-ticket-created-T-<id>.md`
-7. **Rebuild STATE.md:**
-   - Refresh ticket board counts in `STATE.md`.
+   - Assign `mvp:` wave (`MVP-1`, `MVP-2`, or derived from `moscow`) and `effort_budget` (`est_minutes`, `approx_tokens`, steps, retry limit max 3) so `.agentflow/report.html` tracks MVP progress, time estimates, and tokens accurately.
+5. **Write Ticket Record (prefer `.agentflow/scripts/af_records.py` to save tokens):**
+   - **Fast Tier 1/2 path:** Run `python .agentflow/scripts/af_records.py ticket --title "..." --story "..." --ac "Given... When... Then..." --mvp MVP-1 --size S --moscow must --req <REQ-id> --est 25 --tokens "~12k"` (or pass a JSON array via `--batch-stdin`). It auto-generates IDs, compact UTC, `events/`, and refreshes `STATE.md`.
+   - **Tier 0 fallback:** Generate ticket ID `T-<4 base32 chars>-<slug>`, write `.agentflow/tickets/T-<id>.md` manually, log `events/<UTC>-T-<id>-ticket-created-<eid>.md`, and refresh `STATE.md`.
 
 ## Postconditions
 - [ ] `.agentflow/tickets/T-<id>.md` created with complete Given/When/Then criteria and verification mapping.

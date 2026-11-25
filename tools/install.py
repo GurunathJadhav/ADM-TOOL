@@ -142,6 +142,57 @@ def upsert_managed_block(path, dry_run, created, updated, conflicts, block_facto
         atomic_write(path, block, dry_run, created, updated)
 
 
+def _resolve_github_user(target):
+    import subprocess
+    try:
+        r = subprocess.run(["git", "remote", "get-url", "origin"], cwd=target, capture_output=True, text=True, timeout=4)
+        if r.returncode == 0 and r.stdout:
+            m = re.search(r"github\.com[:/]([^/]+)/", r.stdout.strip(), re.I)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    try:
+        r = subprocess.run(["git", "config", "--get", "github.user"], cwd=target, capture_output=True, text=True, timeout=4)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    for hp in (
+        os.path.join(os.environ.get("APPDATA", ""), "GitHub CLI", "hosts.yml"),
+        os.path.join(os.path.expanduser("~"), ".config", "gh", "hosts.yml"),
+    ):
+        try:
+            if hp and os.path.isfile(hp):
+                with open(hp, "r", encoding="utf-8", errors="replace") as fh:
+                    m = re.search(r"^\s*user:\s*(\S+)", fh.read(), re.M)
+                    if m:
+                        return m.group(1)
+        except Exception:
+            pass
+    try:
+        r = subprocess.run(["gh", "api", "user", "-q", ".login"], cwd=target, capture_output=True, text=True, timeout=3)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    try:
+        r = subprocess.run(["git", "config", "--get", "user.email"], cwd=target, capture_output=True, text=True, timeout=4)
+        if r.returncode == 0 and r.stdout:
+            m = re.match(r"^(?:\d+\+)?([^@]+)@users\.noreply\.github\.com$", r.stdout.strip(), re.I)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    try:
+        r = subprocess.run(["git", "config", "--get", "user.name"], cwd=target, capture_output=True, text=True, timeout=4)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    return os.environ.get("GITHUB_USER") or os.environ.get("USER") or os.environ.get("USERNAME") or "developer"
+
+
 def install(source_root, target, dry_run):
     src = os.path.join(source_root, "src")
     af_dir = os.path.join(target, ".agentflow")
@@ -161,7 +212,12 @@ def install(source_root, target, dry_run):
             skipped.append("existing (not overwritten): %s" % os.path.relpath(dst_path, target))
         else:
             with open(src_path, "r", encoding="utf-8-sig") as fh:
-                atomic_write(dst_path, fh.read(), dry_run, created, updated)
+                content = fh.read()
+            if name == "project.md":
+                gh_user = _resolve_github_user(target)
+                proj_name = os.path.basename(os.path.abspath(target))
+                content = content.replace("<owner-name>", gh_user).replace("<project-name>", proj_name)
+            atomic_write(dst_path, content, dry_run, created, updated)
 
     # 2. templates, skills, and command prompt files (copied only where missing; project overrides win)
     for sub, kind in (("templates", "templates"), ("skills", "skills"), ("commands", "commands")):
@@ -199,11 +255,71 @@ def install(source_root, target, dry_run):
     # 4b. native Antigravity skills (.agents/skills/ — slash-command surface, S13)
     mirror_antigravity_skills(src, target, dry_run, created, updated, skipped)
 
+    # 4c. HTML Project Status Dashboard & Clean-Context Build Loop generators
+    for script_name, dest_name in (("agentflow-report.js", "report.js"), ("agentflow-build.js", "build.js")):
+        rep_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), script_name)
+        rep_dst = os.path.join(af_dir, dest_name)
+        if os.path.isfile(rep_src) and not os.path.exists(rep_dst):
+            with open(rep_src, "r", encoding="utf-8-sig") as fh:
+                atomic_write(rep_dst, fh.read(), dry_run, created, updated)
+
+    # 4d. Python token-saving automation scripts (.agentflow/scripts/*.py)
+    py_scripts_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts")
+    if os.path.isdir(py_scripts_src):
+        for f in sorted(os.listdir(py_scripts_src)):
+            if not f.endswith(".py"):
+                continue
+            s_p = os.path.join(py_scripts_src, f)
+            d_p = os.path.join(af_dir, "scripts", f)
+            if not os.path.exists(d_p):
+                with open(s_p, "r", encoding="utf-8-sig") as fh:
+                    atomic_write(d_p, fh.read(), dry_run, created, updated)
+
     # 5. recommended .gitignore additions (separate file; never touches an existing .gitignore)
     if not os.path.exists(os.path.join(target, ".gitignore")):
         atomic_write(os.path.join(target, ".gitignore"), GITIGNORE, dry_run, created, updated)
     else:
         skipped.append("existing .gitignore kept — add .agentflow/private/ manually if desired")
+
+    # 6. initialize git repo if not already inside one (non-destructive)
+    git_dir = os.path.join(target, ".git")
+    if os.path.exists(git_dir):
+        skipped.append("existing .git kept")
+    else:
+        import subprocess
+        try:
+            probe = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=target, capture_output=True, text=True)
+            if probe.returncode == 0 and probe.stdout.strip():
+                skipped.append("inside existing git repo (%s)" % probe.stdout.strip())
+            elif dry_run:
+                created.append(".git/ (via git init -b main)")
+            else:
+                init_res = subprocess.run(["git", "init", "-b", "main"], cwd=target, capture_output=True, text=True)
+                if init_res.returncode != 0:
+                    init_res = subprocess.run(["git", "init"], cwd=target, capture_output=True, text=True)
+                if init_res.returncode == 0:
+                    created.append(".git/ (initialized)")
+                else:
+                    skipped.append("git init failed: %s" % init_res.stderr.strip())
+        except FileNotFoundError:
+            skipped.append("git not found in PATH — skipping git init")
+
+    # 6b. install Tier-2 POSIX git hooks only when --hooks is explicitly passed (Python commit checks work natively everywhere)
+    if "--hooks" in sys.argv:
+        hooks_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hooks")
+        hooks_dst = os.path.join(target, ".git", "hooks")
+        if os.path.isdir(os.path.join(target, ".git")) and os.path.isdir(hooks_src):
+            for h in ("pre-commit", "commit-msg"):
+                hs = os.path.join(hooks_src, h)
+                hd = os.path.join(hooks_dst, h)
+                if os.path.isfile(hs) and not os.path.exists(hd):
+                    with open(hs, "r", encoding="utf-8-sig") as fh:
+                        atomic_write(hd, fh.read(), dry_run, created, updated)
+                    if not dry_run:
+                        try:
+                            os.chmod(hd, 0o755)
+                        except OSError:
+                            pass
 
     # report
     mode = "DRY-RUN (nothing written)" if dry_run else "APPLIED"

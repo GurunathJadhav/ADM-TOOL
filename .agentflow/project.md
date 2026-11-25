@@ -5,11 +5,11 @@ description: The Agentflow framework's own build and governance (self-hosted dog
 record_language: en
 schema_version: 1.0.0
 framework_version: 1.0.0
-owner: <owner-name>
+owner: GurunathJadhav
 approvers:
-  - <owner-name>
+  - GurunathJadhav
 reviewers:
-  - <owner-name>
+  - GurunathJadhav
 observers: []
 user_level: technical
 guidance: expert

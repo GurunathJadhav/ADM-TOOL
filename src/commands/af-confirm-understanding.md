@@ -36,13 +36,14 @@ Synthesizes all elicited requirements, answered questions, confirmed assumptions
 3. **Format for Audience Level:**
    - If `user_level: non-technical`, explain technical implications using plain business terminology.
    - If `user_level: technical`, state architectural patterns, APIs, and data models explicitly.
-4. **Present to Project Owner:**
-   - Output the synthesized summary to the owner in chat.
+4. **Present for Confirmation:**
+   - Read the GitHub username `<github-user>` from `.agentflow/project.md` (`owner:`).
+   - Output the synthesized summary to `<github-user>` in chat.
    - Request explicit confirmation:
-     "Owner: please review this discovery summary. Does this accurately and completely represent your project goals and scope boundaries? Please reply with your explicit confirmation (e.g., 'Confirmed' or specific edits)."
-5. **Handle Owner Response:**
-   - If owner confirms:
-     - Write approval record: `.agentflow/approvals/A-<4 base32 chars>-discovery-confirmed.md` quoting user's exact words.
+     "`@<github-user>`: please review this discovery summary. Does this accurately represent your project goals and scope boundaries? Please reply with your explicit confirmation (e.g., 'Confirmed' or specific edits)."
+5. **Handle Confirmation Response:**
+   - Upon confirmation:
+     - Write approval record: `.agentflow/approvals/A-<4 base32 chars>-discovery-confirmed.md` with `actor: <github-user>`, `approved_by: <github-user>`, `role: approver` (NEVER write generic `"owner"` or `"<owner-name>"`) quoting the exact words verbatim.
      - Log event:
        `events/<UTC-compact>-none-understanding-confirmed-proj-<project_id>.md`
      - Save baseline summary to `.agentflow/baselines/discovery-summary.md`.

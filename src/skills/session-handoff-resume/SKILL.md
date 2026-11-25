@@ -22,10 +22,10 @@ Guarantees that any fresh agent can continue work with no memory of the prior se
 - Full event log or specific records (L2 — targeted lookup only).
 
 ## Steps
-1. **Re-ground (resume):**
-   - Read `STATE.md` first, always. Confirm `built_from` revision is current; if stale, rebuild incrementally (full rebuild only when incremental fails).
-   - Load L1: active ticket, its manifest, criteria, related decisions.
-   - Use L2 targeted lookups for anything else; read the full event log only on explicit demand.
+1. **Re-ground (resume cleanly without pollution):**
+   - Read `STATE.md` and (if implementing) `.agentflow/BUILD-BRIEF.md` first — always. Confirm `built_from` revision is current; if stale, rebuild incrementally.
+   - Load L1: ONLY the single active ticket, its manifest, criteria, and linked decisions.
+   - Use L2 targeted lookups only when needed; **never** bulk-read `questions/`, old `events/`, or unrelated docs during coding.
    - Check invariants in `STATE.md`; if one is violated, stop and reconcile.
 2. **Resolve pending intents:**
    - Before creating any record, check whether an equivalent record already exists (idempotency).

@@ -18,6 +18,7 @@ Inspects the current project status in `STATE.md`, verifies freshness against th
 - [ ] `.agentflow/workflow-map.md` exists.
 
 ## Steps
+0. **Fast Tier 1/2 Path (Recommended):** Run `python .agentflow/scripts/af_gate_runner.py next` — deterministically inspects `STATE.md`, `questions/`, `requirements/`, `tickets/`, and outputs the single recommended next command without loading the 29 KB `workflow-map.md`.
 1. **Re-grounding & State Inspection:**
    - Read the invariant block of `STATE.md` to re-ground rules.
    - Extract current values: `phase`, `edit_lock`, `tier`, `active_ticket`, `active_manifest`, `unverified_step`, open blockers, and recent events.

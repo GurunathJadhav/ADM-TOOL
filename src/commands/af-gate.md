@@ -29,24 +29,27 @@ Enforces formal lifecycle transitions across project phases: `discovery → requ
      - **Verification Gate:** Full project regression passed, quality profile gates cleared.
      - **Review Gate:** Security, architecture, and dependency reviews passed with zero blocking findings.
      - **Release Gate:** All Must tickets accepted, release notes drafted, rollback plan documented, owner go-ahead.
-2. **Audit Exit Checklist:**
-   - Programmatically verify that every prerequisite artifact, event, and verification record exists.
+2. **Audit Exit Checklist (prefer `.agentflow/scripts/af_gate_runner.py` to save tokens):**
+   - **Fast Tier 1/2 path:** Run `python .agentflow/scripts/af_gate_runner.py check-gate` to audit exit conditions, and once approved run `python .agentflow/scripts/af_gate_runner.py advance-gate --to <target-phase> --quote "<confirmation>"` (which records the approval with the GitHub username, logs `gate-advanced`, updates `STATE.md`, and auto-runs `build.js` + `report.js` on `planning -> implementation`).
    - If any exit condition is unmet: **HALT**. Output which condition failed and indicate the exact command that resolves it.
-3. **Present Gate Checklist to Project Owner:**
-   - Display the validated checklist to the owner in chat:
-     "Owner: all exit criteria for phase `<current-phase>` are satisfied.
+3. **Present Gate Checklist for Sign-Off:**
+   - Read `<github-user>` from `.agentflow/project.md` (`owner:`). Display the validated checklist in chat:
+     "`@<github-user>`: all exit criteria for phase `<current-phase>` are satisfied.
      - [x] Criterion 1 (verified by ...)
      - [x] Criterion 2 (verified by ...)
      Do you approve advancing the project to phase `<target-phase>`?"
-4. **Obtain & Record Owner Sign-Off:**
-   - Upon receiving the owner's explicit confirmation:
-     - Write approval record: `.agentflow/approvals/A-<4 base32 chars>-gate-<current>-to-<target>.md`.
+4. **Obtain & Record Sign-Off:**
+   - Upon receiving explicit confirmation:
+     - Write approval record `.agentflow/approvals/A-<4 base32 chars>-gate-<current>-to-<target>.md` with `actor: <github-user>`, `approved_by: <github-user>`, `role: approver` (NEVER write generic `"owner"` or `"<owner-name>"`).
      - Log gate transition event:
        `events/<UTC-compact>-none-gate-advanced-gate-<current>-to-<target>.md`
-5. **Update Project State:**
+5. **Update Project State (and Clean-Context Build Handoff):**
    - Update `phase: <target-phase>` in `STATE.md`.
    - Set `next_action`: initial command for the new phase (as dictated by `workflow-map.md`).
    - Rebuild `STATE.md`.
+   - **When advancing `planning` → `implementation` (Anti-Context-Pollution Checkpoint):**
+     - Immediately run `/af-build` (`node .agentflow/build.js`) to distill all approved requirements, design/UI decisions, and ticket queue into `.agentflow/BUILD-BRIEF.md` and `.agentflow/BUILD-PROMPT.txt`.
+     - Instruct the owner to open a **new clean agent session** and paste the generated build loop prompt so implementation runs with zero discovery/Q&A context pollution!
 
 ## Postconditions
 - [ ] Gate exit criteria verified against `gates.md`.

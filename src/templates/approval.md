@@ -13,8 +13,9 @@ id: A-XXXX-short-slug
 project_id: PROJ-XXXX
 schema_version: 1.0.0
 created: 20260101T000000Z
-actor: human
-role: "owner | approver"
+actor: "<github-username-from-project.md>"
+role: "approver"
+approved_by: "<github-username-from-project.md>"
 approves_id: "PLACEHOLDER — id of the record being approved (e.g., MAN-XXXX, D-XXXX, REQ-XXXX)"
 approves_type: "manifest | decision | requirement | dependency | rule-change | phase-gate | scope-expansion | waiver | other"
 high_risk: "yes | no"
@@ -37,8 +38,8 @@ standing_approval_ref: "PLACEHOLDER — id of the standing approval this uses, o
 
 ## Approver
 
-**Name / handle:** PLACEHOLDER
-**Role:** PLACEHOLDER — must be a role that has authority to approve this record type.
+**GitHub username / handle:** <github-username from .agentflow/project.md `owner:` — NEVER write generic "owner">
+**Role:** approver
 **Timestamp:** PLACEHOLDER — compact UTC of when the user gave this approval.
 
 ## High-Risk Checklist

@@ -36,7 +36,7 @@ Creates or updates a glossary entry in `glossary/<term>.md`. Agents must only us
    actor: <agent>
    role: agent
    term: <term>
-   confirmed_by: <owner-name>
+   confirmed_by: <github-username from project.md owner:>
    confirmed_at: <ts>
    ---
    # <term>

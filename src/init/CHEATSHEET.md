@@ -52,6 +52,7 @@ Advanced commands handle specialized lifecycle steps, safety controls, change ma
 ### Change Control & Planning
 | Command | One-Line Description | Allowed Phases |
 | :--- | :--- | :--- |
+| `/af-build` | Generate clean `BUILD-BRIEF.md` & fresh-session build loop prompt to prevent context pollution | `planning`, `implementation`, `any` |
 | `/af-edit-plan` | Generate and submit an Edit Manifest (allowed files, budgets, criteria) for approval | `planning`, `implementation` |
 | `/af-expand-scope` | Request human approval to modify additional files not listed on the active manifest | `implementation` |
 | `/af-change` | Process a formal Change Request (CR) modifying requirements, architecture, or scope | `any` |

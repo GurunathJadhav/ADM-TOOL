@@ -22,10 +22,10 @@ Validates the current provisional code change against acceptance criteria and qu
 1. **Preflight Step Inspection:**
    - Confirm modified files are strictly listed on the approved Edit Manifest.
    - In `strict` mode, confirm only 1 file step was taken; in `rapid`/`balanced` mode, confirm all files belong to the current cohesive ticket slice.
-2. **Execute Real Verification (Tests + Build + Live Runtime Check):**
-   - Run automated tests, typecheck, linter, and production/dev build:
-     - Tier 1/2: Run command directly in environment.
-     - Tier 0: Present exact command to user and request pasted terminal output.
+2. **Execute Real Verification (prefer `.agentflow/scripts/af_test_runner.py` to save tokens):**
+   - **Fast Tier 1/2 path:** Optionally scaffold tests first with `python .agentflow/scripts/af_test_runner.py scaffold --ticket <ticket-id> --out <test-file>`, then run:
+     `python .agentflow/scripts/af_test_runner.py verify --ticket <ticket-id> --cmd "<test-cmd>" --cmd "<build-cmd>" --criterion <criterion>`
+     It automatically captures trimmed output into `evidence/`, writes `verifications/V-<id>.md`, logs `step-verified`, and clears `unverified_step` in `STATE.md`.
    - **Live Runtime Smoke Check (required for UI/web/app tickets):** Actually run/render the app (dev/preview server, headless browser, or DOM integration check), exercise the interactive flows (create/edit/delete/filter/persist), confirm styling loads cleanly, and assert **zero console errors or uncaught runtime exceptions**.
    - Verify that tests are not skipped, assertions are not weakened, and mocks don't hide broken app wiring.
 3. **Capture Evidence:**

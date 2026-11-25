@@ -17,6 +17,7 @@ Probes, validates, and records concrete facts about the local and target develop
 - [ ] Target environment or tool is accessible for probing.
 
 ## Steps
+0. **Fast Tier 1/2 Path (Recommended):** Run `python .agentflow/scripts/af_records.py env-probe` — automatically detects OS, Node, Python, Git, package manager, and `package.json` scripts, writing `.agentflow/environment/runtime.md`, `.agentflow/environment.md`, and logging the event in one call.
 1. **Identify Target Environment Fact:**
    - Determine the fact category:
      - `os-platform`: Operating system, architecture, default shell.

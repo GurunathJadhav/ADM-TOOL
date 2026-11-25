@@ -41,17 +41,20 @@ Initialize Agentflow in a new or existing repository. Probes agent runtime capab
    - Generate a unique `project_id` (e.g., `proj-4 random base32 chars-name`).
    - Create directory structure under `.agentflow/`:
      - `questions/`, `events/`, `decisions/`, `tickets/`, `manifests/`, `baselines/`, `verifications/`, `approvals/`, `claims/`, `blockers/`, `reviews/`, `requirements/`, `glossary/`, `risks/`, `lessons/`, `environment/`, `waivers/`, `evidence/`, `handoff/`, `spikes/`, `private/`
-4. **Initialize Policy Files:**
+4. **Initialize Policy Files, GitHub Owner & Git Repository:**
+   - Resolve the developer's **current GitHub username** (check `.agentflow/project.md` `owner:` first, or run `gh api user -q .login`, `git config github.user`, `git remote get-url origin` owner, or `git config user.name`). Write that exact username into `project.md` (`owner:`, `approvers:`, `reviewers:`). **Never leave `<owner-name>` or write generic `"owner"` in decisions, confirmations, or approval records.**
    - Write `.agentflow/project.md` with approved defaults, `project_id`, schema version `1.0.0`, and declared tier.
    - Install core policy files: `gates.md`, `lanes.md`, `safety.md`, `protected.md`, and `workflow-map.md`.
+   - **Ensure Git is initialized (Tier 1/2):** If `.git/` does not exist (and not inside a parent repo), run `git init -b main`. Ensure `.gitignore` covers `.env`, secrets, dependencies, and `.agentflow/private/`. If `git rev-parse --verify HEAD` fails (no initial commit yet), stage `.gitignore` + `.agentflow/` + `AGENTS.md` and ask owner / create a clean baseline commit so baselines and diffs work from Ticket 1.
 5. **Record Initial Facts & Log Bootstrap:**
    - Record initial environment facts in `.agentflow/environment/tier.md` and OS/runtime facts if available.
    - Write initial event record:
      `events/<UTC-compact>-none-bootstrap-project.md`
-6. **Build Initial STATE.md:**
+6. **Build Initial STATE.md & HTML Status Dashboard:**
    - Set `phase: discovery`, `edit_lock: locked`, `tier: <tier>`, `active_ticket: none`, `active_manifest: none`, `unverified_step: none`.
    - Set `next_action`: `/af-ask` — begin requirement and project discovery.
    - Include standard invariants block.
+   - Run `node .agentflow/report.js` (if present in Tier 1/2) so `.agentflow/report.html` is initialized from day one.
 
 ## Postconditions
 - [ ] `.agentflow/project.md` created with valid `project_id` and schema version `1.0.0`.

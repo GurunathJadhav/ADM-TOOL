@@ -20,6 +20,7 @@ title: "PLACEHOLDER — short imperative title"
 ticket_type: "story | task | spike | bug | change"
 lane: "trivial | standard | incident | project-level"
 moscow: "must | should | could | wont"
+mvp: "MVP-1"
 size: "S | M | L"
 req_links:
   - REQ-XXXX-slug
@@ -28,7 +29,10 @@ dependencies:
 effort_budget:
   steps: 0
   retries: 0
+  est_minutes: 30
+  actual_minutes: 0
   approx_tokens: "~0k (approximate)"
+  actual_tokens: "~0k (approximate)"
 ---
 
 ## Story

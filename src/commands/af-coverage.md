@@ -17,6 +17,7 @@ Performs a rigorous bidirectional coverage audit between baselined requirements 
 - [ ] Tickets drafted in `tickets/T-*.md`.
 
 ## Steps
+0. **Fast Tier 1/2 Path (Recommended):** Run `python .agentflow/scripts/af_gate_runner.py coverage` — audits all requirements vs tickets, detects gaps/orphans, writes `.agentflow/traceability.md`, and logs `coverage-verified` automatically.
 1. **Audit Requirements Coverage:**
    - Enumerate all requirements with status `baselined`.
    - Cross-reference with all tickets in `.agentflow/tickets/`.

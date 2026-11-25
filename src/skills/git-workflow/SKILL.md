@@ -21,7 +21,8 @@ Git is OPTIONAL in Agentflow — the file records are the source of truth, git i
 - Owner policy on protected branches.
 
 ## Steps
-1. **Record the baseline:** At ticket start, capture `repo_revision` (commit SHA) and `tree_status` (`clean` or `dirty`) in the baseline record. Never start work from an unrecorded state.
+1. **Initialize Git at Project Start (`/af-start`):** For new applications without a git repo, run `git init -b main`, verify `.gitignore` excludes `.env`/secrets/build outputs/`.agentflow/private/`, and establish an initial baseline commit (`HEAD`) before opening Ticket 1.
+2. **Record the baseline:** At ticket start, capture `repo_revision` (commit SHA) and `tree_status` (`clean` or `dirty`) in the baseline record. Never start work from an unrecorded state.
 2. **Create a branch per ticket:** Name it `ticket/<id>-slug`, e.g. `ticket/T-x4kq-login-flow`. One branch per ticket — no mixed-work branches.
 3. **Commit with the ticket ID:** Every commit message includes the ticket id, e.g. `T-x4kq: add rate limiter to login endpoint`. Reference verification records where relevant.
 4. **Link commits at done:** `done` requires the ticket to reference its commits (or file-path evidence if git is absent). Record them in the ticket notes and via `/af-log`.

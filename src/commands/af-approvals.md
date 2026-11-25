@@ -42,7 +42,7 @@ Reads `APPROVALS-NEEDED.md` and `events/` to compile every item currently waitin
    | ID | Type | Description | — | — |
    |---|---|---|---|---|
    ```
-5. **Batch the message to the owner.** Present ALL pending items in a single message grouped by urgency. For each item: what it is, what the risk is, and a recommended answer. Ask the owner to respond to all of them at once.
+5. **Batch the message to the project GitHub owner (`owner:` from `project.md`).** Present ALL pending items in a single message grouped by urgency. When recording approvals, always write their GitHub username (`actor`, `approved_by`) instead of generic `"owner"`.
 6. **Log an approvals-listed event.** Write `events/<ts>-none-approvals-listed-<id>.md` with count of pending items.
 7. **Route to unblocked work** if any exists while waiting for responses.
 

@@ -12,13 +12,15 @@ id: D-XXXX-short-slug
 project_id: PROJ-XXXX
 schema_version: 1.0.0
 created: 20260101T000000Z
-actor: "agent | human"
-role: "owner | approver | reviewer | agent"
+actor: "<github-username-from-project.md | agent-model>"
+role: "approver | architect | agent"
+approved_by: "<github-username-from-project.md>"
 decision_type: "two-way | one-way"
 status: "proposed | accepted | superseded | deprecated"
 supersedes: ""
 superseded_by: ""
 ---
+<!-- NEVER write generic "owner" or "<owner-name>" here — always put the actual GitHub username from .agentflow/project.md (`owner:`). -->
 
 ## Context
 

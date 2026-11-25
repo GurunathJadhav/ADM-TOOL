@@ -10,14 +10,16 @@ core: false
 # /af-report — Human Progress Report
 
 ## Purpose
-Gives the owner a plain-language summary of project health: what is done, what is in progress, what is blocked, what questions or approvals await the user, active waivers, risks, and optional effort metrics. The user never needs to read raw record files. This is a read-only derived view; it writes no records except an optional metrics log entry when `--metrics` is requested.
+Gives the owner a plain-language summary of project health AND keeps the visual HTML dashboard (`.agentflow/report.html`) current: MVPs, user stories, estimated vs actual timings, token consumption (labelled approximate), quality gate coverage, risks, and blockers with inline SVG pie and bar charts.
 
 ## Preconditions
 - [ ] `.agentflow/STATE.md` exists and is readable.
 - [ ] Ticket and event records are readable (list directories, do not read every file — filter by status via latest events).
 
 ## Steps
-1. **Gather state (cheaply):**
+1. **Refresh Visual HTML Dashboard (Tier 1/2):**
+   - If `.agentflow/report.js` exists, run `node .agentflow/report.js` (or `agentflow report .`) so `.agentflow/report.html` reflects the latest MVPs, tickets, timings, tokens, and charts.
+2. **Gather state (cheaply):**
    - Read `STATE.md` (phase, active ticket, blockers, unknowns, next action).
    - List `tickets/` and `events/` filenames to derive counts per status (filename-as-index rule: never open every file).
    - List `blockers/`, `waivers/`, `risks/`, and open `questions/` filenames.

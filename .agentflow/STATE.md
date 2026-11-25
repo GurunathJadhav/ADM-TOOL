@@ -1,5 +1,5 @@
 # Agentflow State
-<!-- Derived, disposable, ~1,000 tokens max. REBUILD: incremental from events newer than built_from; on conflict, delete and re-run /af-rebuild. -->
+<!-- Derived, disposable, ~1,000 tokens max. REBUILD: incremental from events newer than built_from. -->
 
 <!-- INVARIANTS (never drop) -->
 - Edit lock: ON (default). No edits without active ticket + approved manifest.
@@ -18,29 +18,27 @@ active_manifest: none
 unverified_step: none
 guidance: expert
 strictness: strict
-built_from: 20261125T133001Z-T-m9n2-ergonomics-and-craft-ticket-done-E-y3z7
+built_from: 20261125T175954Z-T-k3m4-full-python-cli-automation-ticket-done-E-hxy6-done
 
 ## Ticket Board
-<!-- Max 10 lines. Show only: in-progress, in-review, blocked, next-ready. All others as counts. -->
 - in-progress: none
 - in-review: none
 - blocked: none
-- next-ready: T-a1b2-eval-runs (needs owner go-ahead + 2 real agents incl. a weaker model, ≥3 runs/scenario, one Tier 0 chat-only flow)
-- counts: backlog: 1 (T-c3d4-compat-matrix, depends on T-a1b2), done: 6 (T-e5f6-licence, T-c5d6-cleanup-git, T-b2c3-agtsy-skills, T-d4e5-node-install-loop, T-h8j9-one-command-init, T-m9n2-ergonomics-and-craft), cancelled: 0
+- next-ready: T-a1b2-eval-runs, T-c3d4-compat-matrix
+- counts: backlog: 2, done: 12, cancelled: 0
 
 ## Recent Events (last 5)
-- 20261125T133001Z ticket-done E-y3z7 — T-m9n2 closed (V-t7v8, R-w9x2)
-- 20261125T133000Z step-verified E-y3z6 — T-m9n2 verified (V-t7v8)
-- 20261125T132101Z ticket-started E-y3z5 — T-m9n2 started (manifest M-p3q4, approval A-r5s6)
-- 20261125T132100Z ticket-created E-y3z4 — T-m9n2 created
-- 20261121T174000Z ticket-done E-r5s6 — T-h8j9-one-command-init closed (verified)
+- 20261125T175954Z ticket-done E-hxy6-done — Closed T-k3m4-full-python-cli-automation cleanly (actual: 25m, tokens: ~18k (approximate))
+- 20261125T175117Z ticket-started E-s2t4-k3m4-started — Started T-k3m4-full-python-cli-automation with manifest M-n5p6 and approval A-q7r8
+- 20261125T175116Z ticket-created E-s2t3-k3m4-created — Created T-k3m4-full-python-cli-automation for remaining Python automation scripts and git hooks
+- 20261125T174632Z ticket-done E-j2k5-c4d5-done — Closed T-c4d5-python-automation-scripts — token-saving Python automation scripts, skill, and CLI wiring (V-n4p5, R-q6r7)
+- 20261125T174233Z ticket-started E-j2k4-c4d5-started — Started T-c4d5-python-automation-scripts with manifest M-e6f7 and approval A-g8h9
 
 ## Open Blockers
 - none
 
 ## Unknowns
-- Real-agent eval runs not yet executed; eval pass rates unknown (T-a1b2).
-- Compat-matrix verified cells pending eval results (T-c3d4).
+- none
 
 ## Next Action
-Test updated Agentflow on a fresh project (`node bin/agentflow.js init <project>`) or proceed to T-a1b2 eval runs upon owner go-ahead.
+/af-next or next ticket in BUILD-BRIEF.md

@@ -31,7 +31,7 @@ Pick the pace that matches your project during `/af-start`:
 
 ## Quick start
 
-1. Initialize Agentflow in your project (zero dependencies, never overwrites existing files):
+1. Initialize Agentflow in your project (zero dependencies, never overwrites existing files, and automatically initializes a `git` repository if one isn't present):
    ```bash
    npx github:GurunathJadhav/ADM-TOOL init <your-project>
    # or from a local clone:
@@ -42,22 +42,49 @@ Pick the pace that matches your project during `/af-start`:
 3. In your agent, run `/af-start` (or `"follow AGENTS.md"`). The agent probes its tier, confirms your mode (`rapid` / `balanced` / `strict`), and starts focused discovery.
 4. Full walkthrough: `docs/quickstart.md`.
 
+## Clean-Context Build Loop (Zero Context Pollution)
+
+Once discovery, requirements, and tickets are ready, don't build inside a noisy planning chat:
+```bash
+node .agentflow/build.js        # or: agentflow build .
+# Generates .agentflow/BUILD-BRIEF.md (<1k tokens) + .agentflow/BUILD-PROMPT.txt
+```
+Open a **brand-new clean AI session**, paste the generated loop prompt, and the agent builds ticket batches (`edit-plan → start-ticket → vertical slice → /af-verify + live smoke → report.js → /af-done → build.js`) with sharp focus and automatic context rotation.
+
+## Live HTML Project Status Dashboard
+
+Every installed project gets a self-contained visual dashboard at `.agentflow/report.html` powered by `.agentflow/report.js` (zero dependencies, works offline):
+- **MVPs & User Stories:** Completion progress by MVP wave (`MVP-1` / MoSCoW) and status donut/pie charts
+- **Timings & Tokens:** Grouped bar charts comparing estimated vs actual duration and approximate token consumption per ticket
+- **Quality & Activity:** Verification (`V-*`), review (`R-*`), blocker/risk counters, rework rate, and searchable ticket table
+- Refresh anytime with `node .agentflow/report.js` or `agentflow report .`
+
+## Token-Saving Python Automation Scripts & Safety
+
+Every installed project receives zero-dependency Python helpers in `.agentflow/scripts/` (plus optional POSIX `.git/hooks/` via `--hooks`):
+- `.agentflow/scripts/af_records.py` — `env-probe`, single/batch `req` & `ticket`, `plan` (manifest), `start`, `question`, `decision`, `approval`, `state-rebuild`
+- `.agentflow/scripts/af_test_runner.py` — `scaffold` starter tests, `verify` (tests + evidence + `V-*.md`), `diff-check` (manifest + secret/debug hygiene), and `smoke` (HTTP / artifact / DOM smoke probe)
+- `.agentflow/scripts/af_gate_runner.py` — deterministic `next` router, `coverage` (`traceability.md`), `check-gate`, `advance-gate`, `close-ticket`, and `commit` (built-in secret scan + `[T-xxxx]` tag)
+
 ## Repository layout
 
 ```
 bin/
-  agentflow.js        zero-dependency Node CLI (init, install, loop, doctor, validate, uninstall)
+  agentflow.js        zero-dependency Node CLI (init, install, build, report, loop, doctor, validate, uninstall)
 src/
   format-spec.md      authoritative record schema (front matter, IDs, timestamps)
   init/               policy + state files installed into a project's .agentflow/
   templates/          one Markdown template per record type
-  commands/           54 command prompt files (/af-*)
-  skills/             35 skills (router, frontend-and-ui-craft, tdd-implementation, lean-architecture, ...)
+  commands/           55 command prompt files (/af-*)
+  skills/             38 skills (router, python-script-automation, clean-context-build-loop, project-status-dashboard, frontend-and-ui-craft, ...)
   adapters/           AGENTS.md / CLAUDE.md / antigravity / generic fallback (managed blocks)
   profiles/           per-project-type question banks and defaults (7 profiles)
 docs/                 quickstart, concepts, adapter guide, custom skills, enforcement limits
 evals/                golden example project + bad-behaviour scenarios (S19)
 tools/
+  scripts/            token-saving Python automation scripts (af_records.py, af_test_runner.py, af_gate_runner.py)
+  agentflow-build.js  clean-context BUILD-BRIEF.md & fresh-session loop prompt generator
+  agentflow-report.js zero-dep live HTML + SVG charts status dashboard generator
   install.py          optional Python installer (dry-run, managed blocks)
   validate.py         optional Tier-1 validator (Python, zero dependencies)
   agentflow-loop.js   interactive blocking-question terminal loop

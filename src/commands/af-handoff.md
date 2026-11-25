@@ -62,7 +62,9 @@ Writes a comprehensive `handoff/<date>.md` document that enables any agent (or a
    ## Warnings
    <unverified steps, frozen file changes, incident follow-ups>
    ```
-6. **Log a handoff event.** Write `events/<ts>-none-handoff-<id>.md` with `event_type: handoff`, handoff doc path, and built_from.
+6. **Log a handoff event & Refresh Clean Build Brief:**
+   - Write `events/<ts>-none-handoff-<id>.md` with `event_type: handoff`, handoff doc path, and `built_from`.
+   - If in `planning` or `implementation`, run `node .agentflow/build.js` so `.agentflow/BUILD-BRIEF.md` and `.agentflow/BUILD-PROMPT.txt` give the fresh session minimal, pollution-free context + the exact build loop command.
 7. **Update `STATE.md`** to point `next_action` to exactly the command the next agent should run, and update `built_from`.
 
 ## Postconditions

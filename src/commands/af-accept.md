@@ -22,9 +22,9 @@ Formally records the owner's acceptance of a completed epic (or individual ticke
 ## Steps
 1. **Prepare demo script.** Write a short, plain-language walkthrough of each acceptance criterion for the epic. Include exact steps for the owner to follow, expected outputs, and how to verify each one.
 2. **Present to owner.** Share the demo script and ask the owner to: (a) run or observe the demo, (b) state acceptance, rejection, or change requests verbatim in chat.
-3. **Record the owner's response.** Create `events/<ts>-none-acceptance-<epic-id>.md` with:
+3. **Record acceptance response.** Create `events/<ts>-none-acceptance-<epic-id>.md` with:
    - `event_type: acceptance`
-   - `actor`, `role: owner`
+   - `actor: <github-username from project.md owner:>`, `role: approver` (NEVER write generic `"owner"`)
    - Owner's verbatim response quoted exactly
    - `result: accepted | rejected | changes-requested`
    - Evidence refs (integration check record)
