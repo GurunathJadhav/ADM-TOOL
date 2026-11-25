@@ -2,3 +2,4 @@
 .agentflow/private/
 .agentflow/evidence/*.log
 __pycache__/
+.aider*
