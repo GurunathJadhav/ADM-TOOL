@@ -15,6 +15,12 @@ Turns the current project state into the one correct next command. This skill is
 - Whenever you are unsure which command comes next.
 - When a user request arrives mid-session (classify it first).
 
+## Workflow Principles
+1. **Feature-Sized Vertical Slices:** Never split cohesive features into micro-tickets or stop for trivial confirmations. Every ticket must deliver a complete, working vertical slice (logic + modern, polished UI + tests/verification together).
+2. **Minimize Paperwork Overhead:** Keep planning, manifests, and STATE.md re-grounding lightweight—agents should spend their effort building and verifying real code, not managing dozens of markdown/event steps.
+3. **Quality & UI Enforcement:** Every UI feature must load frontend-and-ui-craft and ship with complete, responsive, modern styling (never unstyled HTML or placeholder UI) plus a verified live runtime check before marking done.
+4. **Mode Pace:** Make rapid/balanced modes flow end-to-end without unnecessary pauses, and keep strict mode focused on meaningful architectural/security gates rather than repetitive micro-ceremony.
+
 ## Inputs
 - `.agentflow/STATE.md` — always read this first (phase, edit lock, active ticket, blockers, `next_action`).
 - `.agentflow/workflow-map.md` — the master table of commands, preconditions, postconditions, and next-command-by-outcome.
@@ -49,8 +55,9 @@ Turns the current project state into the one correct next command. This skill is
 - Any required input is a human approval, answer, or credential.
 
 ## Next Skills
-Depends on the map row's "Skills Loaded" column — typical next skills: `intake`, `requirements-elicitation`, `change-control`, `frontend-and-ui-craft`, `tdd-implementation`, `session-handoff-resume`.
-Respect `strictness` in `project.md` (`rapid` | `balanced` | `strict`) so simple apps stay fast and high-craft instead of bogging down in per-file ceremony.
+Follow the Workflow Principles above. Depends on the map row's "Skills Loaded" column — typical next skills: `intake`, `requirements-elicitation`, `change-control`, `frontend-and-ui-craft`, `tdd-implementation`, `session-handoff-resume`.
+In rapid/balanced modes, flow end-to-end without unnecessary pauses. In strict mode, focus on meaningful architectural/security gates rather than repetitive micro-ceremony.
+Respect `strictness` in `project.md` (`rapid` | `balanced` | `strict`) so apps stay fast and high-craft instead of bogging down in per-file ceremony.
 
 ## Worked Example
 Session starts; `STATE.md` says phase `implementation`, ticket `T-x4kq-login` in progress, one unverified step, `next_action: /af-verify`. Router output: "Next command: `/af-verify` — you have one unverified edit on T-x4kq-login; verifying it clears the step and updates evidence. Preconditions met (ticket claimed, manifest approved). Load `.agentflow/skills/anti-hallucination-verification/SKILL.md` if verification commands are unknown. Re-grounding: re-read `STATE.md` after this transition."
